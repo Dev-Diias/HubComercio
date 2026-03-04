@@ -1,0 +1,54 @@
+﻿@{
+    ViewData["Title"] = "Painel";
+}
+
+<div class="container mt-4">
+    <h3 class="mb-1">Painel de Gestão</h3>
+    <p class="text-muted">Escolha o que você quer gerenciar.</p>
+
+    <div class="row g-3 mt-2">
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Categorias</h5>
+                    <p class="card-text text-muted">Crie e organize categorias do catálogo.</p>
+
+                    <a class="btn btn-primary"
+                       asp-controller="Categorias"
+                       asp-action="Index">
+                        Gerenciar categorias
+                    </a>
+
+                    <a class="btn btn-outline-secondary ms-2"
+                       asp-controller="Categorias"
+                       asp-action="Create">
+                        Nova
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Produtos</h5>
+                    <p class="card-text text-muted">Cadastre produtos, preços e imagens.</p>
+
+                    <a class="btn btn-primary"
+                       asp-controller="Produtos"
+                       asp-action="Index">
+                        Gerenciar produtos
+                    </a>
+
+                    <a class="btn btn-outline-secondary ms-2"
+                       asp-controller="Produtos"
+                       asp-action="Create">
+                        Novo
+                    </a>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
