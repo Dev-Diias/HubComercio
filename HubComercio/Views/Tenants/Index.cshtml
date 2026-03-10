@@ -52,17 +52,32 @@
                 @Html.DisplayFor(modelItem => item.Ativo)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.LogoUrl)
-            </td>
+
+                    @if (!string.IsNullOrEmpty(item.LogoUrl))
+                    {
+                        <img src="@item.LogoUrl" alt="Imagem" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sem imagem</span>
+                    }
+                
+                </td>
             <td>
-                @Html.DisplayFor(modelItem => item.BannerUrl)
+                 @if (!string.IsNullOrEmpty(item.BannerUrl))
+                    {
+                        <img src="@item.BannerUrl" alt="Imagem" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sem imagem</span>
+                    }                
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CorPrincipal)
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
             </td>
         </tr>

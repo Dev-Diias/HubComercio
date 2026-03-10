@@ -43,7 +43,7 @@
                 @Html.DisplayFor(modelItem => item.Nome)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Preco)
+                    @item.Preco.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.UnidadeMedida)
@@ -52,7 +52,14 @@
                 @Html.DisplayFor(modelItem => item.Qtde)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.ImagemUrl)
+                    @if (!string.IsNullOrEmpty(item.ImagemUrl))
+                    {
+                        <img src="@item.ImagemUrl" alt="Imagem" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
+                    }
+                    else
+                    {
+                        <span class="text-muted">Sem imagem</span>
+                    }
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Categoria.Nome)
@@ -62,7 +69,6 @@
             </td>
             <td>
                 <a asp-action="Edit" asp-route-id="@item.IdProduto">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdProduto">Details</a> |
                 <a asp-action="Delete" asp-route-id="@item.IdProduto">Delete</a>
             </td>
         </tr>

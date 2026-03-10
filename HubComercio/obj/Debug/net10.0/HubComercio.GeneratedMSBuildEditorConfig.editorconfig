@@ -58,16 +58,8 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcQ2F0ZWdvcmlhc1xJbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Gestao/Index.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcR2VzdGFvXEluZGV4LmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Home/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxJbmRleC5jc2h0bWw=
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Home/Privacy.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcSG9tZVxQcml2YWN5LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Produtos/Create.cshtml]
@@ -76,10 +68,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Produtos/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHV0b3NcRGVsZXRlLmNzaHRtbA==
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Produtos/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcUHJvZHV0b3NcRGV0YWlscy5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Produtos/Edit.cshtml]
@@ -104,10 +92,6 @@ build_metadata.AdditionalFiles.CssScope =
 
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Tenants/Delete.cshtml]
 build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVuYW50c1xEZWxldGUuY3NodG1s
-build_metadata.AdditionalFiles.CssScope = 
-
-[C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Tenants/Details.cshtml]
-build_metadata.AdditionalFiles.TargetPath = Vmlld3NcVGVuYW50c1xEZXRhaWxzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
 [C:/Users/gagag/source/repos/HubComercio/HubComercio/Views/Tenants/Edit.cshtml]

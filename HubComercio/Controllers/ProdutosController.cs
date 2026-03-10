@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
-using HubComercio.Data;
+﻿using HubComercio.Data;
 using HubComercio.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 
 namespace HubComercio.Controllers
 {
+    [Authorize]
     public class ProdutosController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -19,170 +17,264 @@ namespace HubComercio.Controllers
             _context = context;
         }
 
+        // =========================
+        // Helpers
+        // =========================
+        private int GetTenantId()
+        {
+            var tenantClaim = User.FindFirst("TenantId")?.Value;
+            return int.Parse(tenantClaim ?? "0");
+        }
+
+        // Aceita "12.90" e "12,90"
+        private bool TryParsePrecoFromForm(out decimal preco)
+        {
+            preco = 0m;
+            var precoForm = Request.Form["Preco"].ToString();
+
+            if (string.IsNullOrWhiteSpace(precoForm))
+                return true; // deixa validação de Required/Range cuidar, se existir
+
+            precoForm = precoForm.Trim().Replace(",", ".");
+
+            return decimal.TryParse(
+                precoForm,
+                NumberStyles.Any,
+                CultureInfo.InvariantCulture,
+                out preco
+            );
+        }
+
+        private void CarregarCategoriasDoTenant(int tenantId, int? categoriaSelecionada = null)
+        {
+            ViewBag.Categorias = _context.Categorias
+                .Where(c => c.TenantId == tenantId)
+                .Select(c => new { c.IdCategoria, c.Nome })
+                .ToList();
+
+            ViewBag.CategoriaSelecionada = categoriaSelecionada;
+        }
+
+        // =========================
         // GET: Produtos
+        // =========================
         public async Task<IActionResult> Index()
         {
             int tenantId = GetTenantId();
 
-            // Filtra os produtos onde o TenantId coincide com o do usuário logado
-            var produtosDoMeuMercado = _context.Produtos
+            var produtos = await _context.Produtos
                 .Include(p => p.Categoria)
                 .Include(p => p.Tenant)
-                .Where(p => p.TenantId == tenantId);
+                .Where(p => p.TenantId == tenantId)
+                .ToListAsync();
 
-            return View(await produtosDoMeuMercado.ToListAsync());
+            return View(produtos);
         }
 
-        // GET: Produtos/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+        
 
-            var produto = await _context.Produtos
-                .Include(p => p.Categoria)
-                .Include(p => p.Tenant)
-                .FirstOrDefaultAsync(m => m.IdProduto == id);
-            if (produto == null)
-            {
-                return NotFound();
-            }
-
-            return View(produto);
-        }
-
+        // =========================
         // GET: Produtos/Create
+        // =========================
         public IActionResult Create()
         {
             int tenantId = GetTenantId();
-            // Filtra as categorias para mostrar apenas as do mercado logado
-            ViewData["CategoriaId"] = new SelectList(_context.Categorias.Where(c => c.TenantId == tenantId), "IdCategoria", "Nome");
-
-            // Removi a linha do ViewData["TenantId"] pois o sistema já sabe quem é o mercado
+            CarregarCategoriasDoTenant(tenantId);
             return View();
         }
 
+        // =========================
         // POST: Produtos/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("IdProduto,Nome,Preco,UnidadeMedida,Qtde,ImagemUrl,CategoriaId,TenantId")] Produto produto)
+        public async Task<IActionResult> Create(Produto produto, IFormFile? foto)
         {
-            // Força o vínculo com o mercado do usuário logado
-            produto.TenantId = GetTenantId();
+            int tenantId = GetTenantId();
+            produto.TenantId = tenantId;
 
-            if (ModelState.IsValid)
+            // Converte preço aceitando ponto ou vírgula
+            if (!TryParsePrecoFromForm(out var precoOk))
+                ModelState.AddModelError("Preco", "Preço inválido. Use 12.90 ou 12,90.");
+            else
+                produto.Preco = precoOk;
+
+            // Valida categoria dentro do tenant
+            bool categoriaValida = await _context.Categorias
+                .AnyAsync(c => c.IdCategoria == produto.CategoriaId && c.TenantId == tenantId);
+
+            if (!categoriaValida)
+                ModelState.AddModelError("CategoriaId", "Categoria inválida.");
+
+            // Upload da imagem
+            if (foto != null && foto.Length > 0)
             {
-                _context.Add(produto);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                var pasta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "imagens");
+                Directory.CreateDirectory(pasta);
+
+                var ext = Path.GetExtension(foto.FileName);
+                var nomeArquivo = $"{Guid.NewGuid()}{ext}";
+                var caminho = Path.Combine(pasta, nomeArquivo);
+
+                using (var stream = new FileStream(caminho, FileMode.Create))
+                    await foto.CopyToAsync(stream);
+
+                produto.ImagemUrl = "/imagens/" + nomeArquivo;
             }
-            return View(produto);
+
+            // Evita validação de navegação e tenant vindo do form
+            ModelState.Remove("Categoria");
+            ModelState.Remove("Tenant");
+            ModelState.Remove("TenantId");
+
+            if (!ModelState.IsValid)
+            {
+                CarregarCategoriasDoTenant(tenantId, produto.CategoriaId);
+                return View(produto);
+            }
+
+            _context.Produtos.Add(produto);
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
 
+        // =========================
         // GET: Produtos/Edit/5
+        // =========================
         public async Task<IActionResult> Edit(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
 
-            var produto = await _context.Produtos.FindAsync(id);
-            if (produto == null)
-            {
-                return NotFound();
-            }
-            ViewData["CategoriaId"] = new SelectList(_context.Categorias, "IdCategoria", "Nome", produto.CategoriaId);
-            ViewData["TenantId"] = new SelectList(_context.Tenants, "Id", "NomeEstabelecimento", produto.TenantId);
-            return View(produto);
-        }
-
-        // POST: Produtos/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("IdProduto,Nome,Preco,UnidadeMedida,Qtde,ImagemUrl,CategoriaId,TenantId")] Produto produto)
-        {
-            if (id != produto.IdProduto)
-            {
-                return NotFound();
-            }
-
-            if (ModelState.IsValid)
-            {
-                try
-                {
-                    _context.Update(produto);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!ProdutoExists(produto.IdProduto))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["CategoriaId"] = new SelectList(_context.Categorias, "IdCategoria", "Nome", produto.CategoriaId);
-            ViewData["TenantId"] = new SelectList(_context.Tenants, "Id", "NomeEstabelecimento", produto.TenantId);
-            return View(produto);
-        }
-
-        // GET: Produtos/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            int tenantId = GetTenantId();
 
             var produto = await _context.Produtos
-                .Include(p => p.Categoria)
-                .Include(p => p.Tenant)
-                .FirstOrDefaultAsync(m => m.IdProduto == id);
-            if (produto == null)
-            {
-                return NotFound();
-            }
+                .FirstOrDefaultAsync(p => p.IdProduto == id && p.TenantId == tenantId);
 
+            if (produto == null) return NotFound();
+
+            CarregarCategoriasDoTenant(tenantId, produto.CategoriaId);
             return View(produto);
         }
 
-        // POST: Produtos/Delete/5
-        [HttpPost, ActionName("Delete")]
+        // =========================
+        // POST: Produtos/Edit/5
+        // =========================
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Edit(int id, Produto produto, IFormFile? foto)
         {
-            var produto = await _context.Produtos.FindAsync(id);
-            if (produto != null)
+            if (id != produto.IdProduto) return NotFound();
+
+            int tenantId = GetTenantId();
+
+            // Busca o produto real do banco (para manter TenantId/Imagem atual com segurança)
+            var produtoDb = await _context.Produtos
+                .FirstOrDefaultAsync(p => p.IdProduto == id && p.TenantId == tenantId);
+
+            if (produtoDb == null) return NotFound();
+
+            // Converte preço aceitando ponto ou vírgula
+            if (!TryParsePrecoFromForm(out var precoOk))
+                ModelState.AddModelError("Preco", "Preço inválido. Use 12.90 ou 12,90.");
+
+            // Valida categoria dentro do tenant
+            bool categoriaValida = await _context.Categorias
+                .AnyAsync(c => c.IdCategoria == produto.CategoriaId && c.TenantId == tenantId);
+
+            if (!categoriaValida)
+                ModelState.AddModelError("CategoriaId", "Categoria inválida.");
+
+            ModelState.Remove("Categoria");
+            ModelState.Remove("Tenant");
+            ModelState.Remove("TenantId");
+
+            if (!ModelState.IsValid)
             {
-                _context.Produtos.Remove(produto);
+                CarregarCategoriasDoTenant(tenantId, produto.CategoriaId);
+                return View(produto);
+            }
+
+            // Atualiza campos permitidos
+            produtoDb.Nome = produto.Nome;
+            produtoDb.Preco = precoOk;
+            produtoDb.UnidadeMedida = produto.UnidadeMedida;
+            produtoDb.Qtde = produto.Qtde;
+            produtoDb.CategoriaId = produto.CategoriaId;
+
+            // Upload: se trocar imagem, salva nova e atualiza URL
+            if (foto != null && foto.Length > 0)
+            {
+                var pasta = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "imagens");
+                Directory.CreateDirectory(pasta);
+
+                var ext = Path.GetExtension(foto.FileName);
+                var nomeArquivo = $"{Guid.NewGuid()}{ext}";
+                var caminho = Path.Combine(pasta, nomeArquivo);
+
+                using (var stream = new FileStream(caminho, FileMode.Create))
+                    await foto.CopyToAsync(stream);
+
+                // (Opcional) apagar imagem antiga do disco
+                // if (!string.IsNullOrEmpty(produtoDb.ImagemUrl))
+                // {
+                //     var antiga = produtoDb.ImagemUrl.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString());
+                //     var caminhoAntigo = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", antiga);
+                //     if (System.IO.File.Exists(caminhoAntigo)) System.IO.File.Delete(caminhoAntigo);
+                // }
+
+                produtoDb.ImagemUrl = "/imagens/" + nomeArquivo;
             }
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
-        private bool ProdutoExists(int id)
+        // =========================
+        // GET: Produtos/Delete/5
+        // =========================
+        public async Task<IActionResult> Delete(int? id)
         {
-            return _context.Produtos.Any(e => e.IdProduto == id);
+            if (id == null) return NotFound();
+
+            int tenantId = GetTenantId();
+
+            var produto = await _context.Produtos
+                .Include(p => p.Categoria)
+                .Include(p => p.Tenant)
+                .FirstOrDefaultAsync(p => p.IdProduto == id && p.TenantId == tenantId);
+
+            if (produto == null) return NotFound();
+
+            return View(produto);
         }
 
-        private int GetTenantId()
+        // =========================
+        // POST: Produtos/Delete/5
+        // =========================
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            // Lê o "crachá" (Claim) que guardamos no momento do login
-            var tenantClaim = User.FindFirst("TenantId")?.Value;
-            return int.Parse(tenantClaim ?? "0");
+            int tenantId = GetTenantId();
+
+            var produto = await _context.Produtos
+                .FirstOrDefaultAsync(p => p.IdProduto == id && p.TenantId == tenantId);
+
+            if (produto != null)
+            {
+                // (Opcional) apagar imagem do disco ao deletar
+                // if (!string.IsNullOrEmpty(produto.ImagemUrl))
+                // {
+                //     var rel = produto.ImagemUrl.TrimStart('/').Replace("/", Path.DirectorySeparatorChar.ToString());
+                //     var caminho = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", rel);
+                //     if (System.IO.File.Exists(caminho)) System.IO.File.Delete(caminho);
+                // }
+
+                _context.Produtos.Remove(produto);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Index));
         }
     }
 }

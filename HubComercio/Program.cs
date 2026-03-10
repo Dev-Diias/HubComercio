@@ -1,6 +1,9 @@
 using HubComercio.Data;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
+using System.Globalization;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +12,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 // 2. DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString)
-           .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking));
+    options.UseSqlServer(connectionString));
 
 // 3. Autenticação
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -58,5 +60,16 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+
+
+var supportedCultures = new[] { new CultureInfo("pt-BR") };
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new RequestCulture("pt-BR"),
+    SupportedCultures = supportedCultures,
+    SupportedUICultures = supportedCultures
+});
 
 app.Run();

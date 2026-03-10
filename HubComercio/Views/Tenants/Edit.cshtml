@@ -1,64 +1,103 @@
 ﻿@model HubComercio.Models.Tenant
 
 @{
-    ViewData["Title"] = "Edit";
+    ViewData["Title"] = "Editar Tenant";
 }
 
-<h1>Edit</h1>
+<div class="container mt-4">
+    <h4>Editar Tenant</h4>
+    <hr />
 
-<h4>Tenant</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Edit">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <input type="hidden" asp-for="Id" />
-            <div class="form-group">
-                <label asp-for="NomeEstabelecimento" class="control-label"></label>
-                <input asp-for="NomeEstabelecimento" class="form-control" />
-                <span asp-validation-for="NomeEstabelecimento" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CNPJ" class="control-label"></label>
-                <input asp-for="CNPJ" class="form-control" />
-                <span asp-validation-for="CNPJ" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="DataCadastro" class="control-label"></label>
-                <input asp-for="DataCadastro" class="form-control" />
-                <span asp-validation-for="DataCadastro" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Ativo" /> @Html.DisplayNameFor(model => model.Ativo)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="LogoUrl" class="control-label"></label>
-                <input asp-for="LogoUrl" class="form-control" />
-                <span asp-validation-for="LogoUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="BannerUrl" class="control-label"></label>
-                <input asp-for="BannerUrl" class="form-control" />
-                <span asp-validation-for="BannerUrl" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CorPrincipal" class="control-label"></label>
-                <input asp-for="CorPrincipal" class="form-control" />
-                <span asp-validation-for="CorPrincipal" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
-            </div>
-        </form>
+    <div class="row">
+        <div class="col-md-6">
+
+            <form asp-action="Edit" asp-route-id="@Model.Id" method="post" enctype="multipart/form-data">
+                <div asp-validation-summary="All" class="text-danger"></div>
+
+                <input type="hidden" asp-for="Id" />
+
+                @* DataCadastro não deve ser editável *@
+                <input type="hidden" asp-for="DataCadastro" />
+
+                @* Mantém URLs atuais caso não troque as imagens *@
+                <input type="hidden" asp-for="LogoUrl" />
+                <input type="hidden" asp-for="BannerUrl" />
+
+                <div class="mb-3">
+                    <label asp-for="NomeEstabelecimento" class="form-label">Nome do Estabelecimento</label>
+                    <input asp-for="NomeEstabelecimento" class="form-control" />
+                    <span asp-validation-for="NomeEstabelecimento" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CNPJ" class="form-label">CNPJ</label>
+                    <input asp-for="CNPJ" class="form-control" />
+                    <span asp-validation-for="CNPJ" class="text-danger"></span>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" asp-for="Ativo" />
+                    <label class="form-check-label" asp-for="Ativo">Ativo</label>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Logo atual</label>
+                    <div>
+                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                        {
+                            <img src="@Model.LogoUrl" alt="Logo atual"
+                                 style="width:120px;height:120px;object-fit:cover;border-radius:10px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem logo</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Trocar logo (opcional)</label>
+                    <input type="file" name="logo" class="form-control" accept="image/*" />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Banner atual</label>
+                    <div>
+                        @if (!string.IsNullOrEmpty(Model.BannerUrl))
+                        {
+                            <img src="@Model.BannerUrl" alt="Banner atual"
+                                 style="width:100%;max-width:520px;height:140px;object-fit:cover;border-radius:10px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem banner</span>
+                        }
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Trocar banner (opcional)</label>
+                    <input type="file" name="banner" class="form-control" accept="image/*" />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CorPrincipal" class="form-label">Cor Principal da Marca</label>
+                    <input asp-for="CorPrincipal" type="color" class="form-control form-control-color" />
+                    <span asp-validation-for="CorPrincipal" class="text-danger"></span>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                    <a asp-action="Index" class="btn btn-secondary">Voltar</a>
+                </div>
+            </form>
+
+        </div>
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
-
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }
