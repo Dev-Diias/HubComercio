@@ -30,32 +30,39 @@ namespace HubComercio.Controllers
         {
             if (ModelState.IsValid)
             {
-                // Busca assíncrona e sem rastreamento para evitar o erro 0xffffffff
                 var usuario = await _context.Usuarios
                     .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Email == model.Email && u.Senha == model.Senha);
 
                 if (usuario != null)
                 {
+                    var cargo = string.IsNullOrEmpty(usuario.Cargo) ? "Usuario" : usuario.Cargo;
+
                     var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Name, usuario.Nome),
                 new Claim(ClaimTypes.Email, usuario.Email),
-                // Converte o ID explicitamente para string para evitar erros de tipo
                 new Claim("TenantId", usuario.TenantId.ToString()),
-                new Claim("Cargo", usuario.Cargo ?? "dono")
+                new Claim(ClaimTypes.Role, cargo),   // ✅ ESSA LINHA É A IMPORTANTE
+                new Claim("Cargo", cargo)            // opcional, se quiser continuar usando
             };
 
-                    var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                    var claimsIdentity = new ClaimsIdentity(
+                        claims,
+                        CookieAuthenticationDefaults.AuthenticationScheme
+                    );
 
-                    await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
-                        new ClaimsPrincipal(claimsIdentity));
+                    await HttpContext.SignInAsync(
+                        CookieAuthenticationDefaults.AuthenticationScheme,
+                        new ClaimsPrincipal(claimsIdentity)
+                    );
 
                     return RedirectToAction("Index", "Home");
                 }
 
                 ModelState.AddModelError("", "E-mail ou senha inválidos.");
             }
+
             return View(model);
         }
 

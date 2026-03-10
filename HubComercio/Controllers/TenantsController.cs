@@ -7,7 +7,7 @@ using System.IO;
 
 namespace HubComercio.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "Admin")]
     public class TenantsController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -17,10 +17,20 @@ namespace HubComercio.Controllers
             _context = context;
         }
 
+        private int GetTenantId()
+        {
+            var tenantClaim = User.FindFirst("TenantId")?.Value;
+            return int.TryParse(tenantClaim, out var tenantId) ? tenantId : 0;
+        }
+
         // GET: Tenants
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Tenants.ToListAsync());
+            var tenants = await _context.Tenants
+                .AsNoTracking()
+                .ToListAsync();
+
+            return View(tenants);
         }
 
         // GET: Tenants/Create
@@ -34,7 +44,6 @@ namespace HubComercio.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Tenant tenant, IFormFile? logo, IFormFile? banner)
         {
-            // DataCadastro automático (não vem da tela)
             tenant.DataCadastro = DateTime.Now;
 
             if (logo != null && logo.Length > 0)
@@ -54,11 +63,15 @@ namespace HubComercio.Controllers
         }
 
         // GET: Tenants/Edit/5
+        [HttpGet]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
 
-            var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == id);
+            var tenant = await _context.Tenants
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (tenant == null) return NotFound();
 
             return View(tenant);
@@ -71,23 +84,22 @@ namespace HubComercio.Controllers
         {
             if (id != tenant.Id) return NotFound();
 
-            var tenantDb = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == id);
+            var tenantDb = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (tenantDb == null) return NotFound();
 
-            // atualiza campos editáveis
             tenantDb.NomeEstabelecimento = tenant.NomeEstabelecimento;
             tenantDb.CNPJ = tenant.CNPJ;
             tenantDb.Ativo = tenant.Ativo;
             tenantDb.CorPrincipal = tenant.CorPrincipal;
 
-            // uploads opcionais
             if (logo != null && logo.Length > 0)
                 tenantDb.LogoUrl = await SalvarImagemTenantAsync(logo);
 
             if (banner != null && banner.Length > 0)
                 tenantDb.BannerUrl = await SalvarImagemTenantAsync(banner);
 
-            // evita ModelState travar por campos que não devem ser editados
             ModelState.Remove("DataCadastro");
             ModelState.Remove("LogoUrl");
             ModelState.Remove("BannerUrl");
@@ -98,13 +110,15 @@ namespace HubComercio.Controllers
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
-
         // GET: Tenants/Delete/5
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
 
-            var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == id);
+            var tenant = await _context.Tenants
+                .AsNoTracking()
+                .FirstOrDefaultAsync(t => t.Id == id);
+
             if (tenant == null) return NotFound();
 
             return View(tenant);
@@ -115,19 +129,15 @@ namespace HubComercio.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var tenant = await _context.Tenants.FindAsync(id);
-            if (tenant != null)
-            {
-                _context.Tenants.Remove(tenant);
-                await _context.SaveChangesAsync();
-            }
+            var tenant = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Id == id);
+
+            if (tenant == null) return NotFound();
+
+            _context.Tenants.Remove(tenant);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
-        }
-
-        private bool TenantExists(int id)
-        {
-            return _context.Tenants.Any(e => e.Id == id);
         }
 
         private async Task<string> SalvarImagemTenantAsync(IFormFile arquivo)

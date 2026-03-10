@@ -1,34 +1,45 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore; 
+﻿using HubComercio.Models;
 using HubComercio.Data;
-using HubComercio.Models;
-
-public class CatalogoController : Controller
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using HubComercio.Models.ViewModels;
+namespace HubComercio.Controllers
 {
-    private readonly ApplicationDbContext _context;
 
-    public CatalogoController(ApplicationDbContext context)
+    public class CatalogoController : Controller
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    // O parâmetro 'id' aqui é o ID do Mercado (Tenant)
-    public async Task<IActionResult> Index(int id)
-    {
-        // 1. Busca os dados do mercado para personalizar a tela (cores/nome)
-        var tenant = await _context.Tenants.FirstOrDefaultAsync(t => t.Id == id);
+        public CatalogoController(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-        if (tenant == null) return NotFound();
+        // O parâmetro 'id' aqui é o ID do Mercado (Tenant)
+        public async Task<IActionResult> Index(int id)
+        {
+            var tenant = await _context.Tenants
+                .FirstOrDefaultAsync(t => t.Id == id && t.Ativo);
 
-        // 2. Busca os produtos desse mercado específico que estão ativos
-        var produtos = await _context.Produtos
-            .Include(p => p.Categoria)
-            .Where(p => p.TenantId == id)
-            .ToListAsync();
+            if (tenant == null)
+                return NotFound();
 
-        // 3. Passamos o Tenant no ViewData para usar as cores no Layout do catálogo
-        ViewData["Tenant"] = tenant;
+            var produtos = await _context.Produtos
+                .Include(p => p.Categoria)
+                .Where(p => p.TenantId == tenant.Id)
+                .ToListAsync();
 
-        return View(produtos);
+            var viewModel = new CatalogoViewModel
+            {
+                TenantId = tenant.Id,
+                NomeEstabelecimento = tenant.NomeEstabelecimento,
+                LogoUrl = tenant.LogoUrl,
+                BannerUrl = tenant.BannerUrl,
+                CorPrincipal = tenant.CorPrincipal,
+                Produtos = produtos
+            };
+
+            return View(viewModel);
+        }
     }
 }

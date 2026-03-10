@@ -34,13 +34,11 @@
                         </li>
                                                
                         @* ===== MENU DE DESENVOLVIMENTO (aparece só em Development) ===== *@
-                        @if (isDev)
+                        @if (User.IsInRole("Admin"))
                         {
-                                              
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-controller="Tenants" asp-action="Index">Tenants</a>
                             </li>
-                            
                         }
                     </ul>
 
