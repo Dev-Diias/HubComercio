@@ -23,36 +23,32 @@
                 <input type="hidden" asp-for="LogoUrl" />
                 <input type="hidden" asp-for="BannerUrl" />
 
-                <div class="mb-3">
-                    <label asp-for="NomeEstabelecimento" class="form-label">Nome do Estabelecimento</label>
-                    <input asp-for="NomeEstabelecimento" class="form-control" />
-                    <span asp-validation-for="NomeEstabelecimento" class="text-danger"></span>
-                </div>
-
-                <div class="mb-3">
-                    <label asp-for="CNPJ" class="form-label">CNPJ</label>
-                    <input asp-for="CNPJ" class="form-control" />
-                    <span asp-validation-for="CNPJ" class="text-danger"></span>
-                </div>
-
-                <div class="form-check mb-3">
-                    <input class="form-check-input" asp-for="Ativo" />
-                    <label class="form-check-label" asp-for="Ativo">Ativo</label>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Logo atual</label>
-                    <div>
-                        @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                        {
-                            <img src="@Model.LogoUrl" alt="Logo atual"
-                                 style="width:120px;height:120px;object-fit:cover;border-radius:10px;" />
-                        }
-                        else
-                        {
-                            <span class="text-muted">Sem logo</span>
-                        }
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="mb-3">
+                        <label asp-for="NomeEstabelecimento" class="form-label">Nome do Estabelecimento</label>
+                        <input asp-for="NomeEstabelecimento" class="form-control" />
+                        <span asp-validation-for="NomeEstabelecimento" class="text-danger"></span>
                     </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CNPJ" class="form-label">CNPJ</label>
+                        <input asp-for="CNPJ" class="form-control" />
+                        <span asp-validation-for="CNPJ" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" asp-for="Ativo" />
+                        <label class="form-check-label" asp-for="Ativo">Ativo</label>
+                    </div>
+                }
+
+                <div class="mb-3">
+                    <label class="form-label">Logo atual</label><br />
+                    @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                    {
+                        <img src="@Model.LogoUrl" alt="Logo" style="max-height: 110px;" class="rounded shadow-sm" />
+                    }
                 </div>
 
                 <div class="mb-3">
@@ -61,18 +57,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Banner atual</label>
-                    <div>
-                        @if (!string.IsNullOrEmpty(Model.BannerUrl))
-                        {
-                            <img src="@Model.BannerUrl" alt="Banner atual"
-                                 style="width:100%;max-width:520px;height:140px;object-fit:cover;border-radius:10px;" />
-                        }
-                        else
-                        {
-                            <span class="text-muted">Sem banner</span>
-                        }
-                    </div>
+                    <label class="form-label">Banner atual</label><br />
+                    @if (!string.IsNullOrEmpty(Model.BannerUrl))
+                    {
+                        <img src="@Model.BannerUrl" alt="Banner" style="max-width: 100%; max-height: 180px;" class="rounded shadow-sm" />
+                    }
                 </div>
 
                 <div class="mb-3">

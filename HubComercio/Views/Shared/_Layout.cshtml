@@ -12,6 +12,7 @@
     <script type="importmap"></script>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/HubComercio.styles.css" asp-append-version="true" />
 </head>
@@ -42,21 +43,72 @@
                         }
                     </ul>
 
-                    <div class="d-flex align-items-center gap-2">
-
-                        <span class="badge bg-primary">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="badge rounded-pill bg-primary-subtle text-primary border">
                             Tenant: @(tenantId ?? "sem tenant")
                         </span>
 
-                        @if (User.Identity.IsAuthenticated)
+                        @if (User.Identity?.IsAuthenticated ?? false)
                         {
-                            <form asp-controller="Account" asp-action="Logout" method="post">
-                                <button type="submit" class="btn btn-outline-danger btn-sm">
-                                    Logout
-                                </button>
-                            </form>
-                        }
+                            <div class="dropdown user-menu">
+                                <button class="btn user-menu-button dropdown-toggle d-flex align-items-center gap-2"
+                                        type="button"
+                                        id="userMenuDropdown"
+                                        data-bs-toggle="dropdown"
+                                        aria-expanded="false">
+                
+                                    <div class="user-avatar">
+                                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
 
+                                    <div class="text-start d-none d-md-block">
+                                        <div class="user-name">@User.Identity.Name</div>
+                                        <small class="user-role text-muted">@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</small>
+                                    </div>
+                                </button>
+
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 user-dropdown" aria-labelledby="userMenuDropdown">
+                                    <li class="dropdown-header px-3 py-2">
+                                        <div class="fw-semibold">@User.Identity.Name</div>
+                                        <small class="text-muted">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</small>
+                                    </li>
+
+                                    <li><hr class="dropdown-divider" /></li>
+
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                                   asp-controller="Tenants"
+                                                   asp-action="Index">
+                                                <i class="bi bi-gear"></i>
+                                                Configuração da loja
+                                            </a>
+                                        </li>
+                                    }
+                                    else
+                                    {
+                                        <li>
+                                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                                   asp-controller="Tenants"
+                                                   asp-action="MinhaLoja">
+                                                <i class="bi bi-gear"></i>
+                                                Configuração da loja
+                                            </a>
+                                        </li>
+                                    }
+
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                                            <button type="submit" class="dropdown-item d-flex align-items-center gap-2 text-danger">
+                                                <i class="bi bi-box-arrow-right"></i>
+                                                Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>

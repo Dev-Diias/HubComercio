@@ -29,3 +29,65 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+.user-menu-button {
+    background: transparent;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 12px;
+    transition: all 0.2s ease-in-out;
+}
+
+    .user-menu-button:hover,
+    .user-menu-button:focus,
+    .user-menu-button:active {
+        background-color: #f8f9fa !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+.user-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #0d6efd, #4f8dfd);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.25);
+}
+
+.user-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+    line-height: 1.1;
+}
+
+.user-role {
+    font-size: 12px;
+}
+
+.user-dropdown {
+    min-width: 260px;
+    border-radius: 14px;
+    padding: 8px 0;
+    margin-top: 10px;
+}
+
+    .user-dropdown .dropdown-item {
+        padding: 10px 16px;
+        font-size: 14px;
+        transition: background-color 0.2s ease;
+    }
+
+        .user-dropdown .dropdown-item:hover {
+            background-color: #f8f9fa;
+        }
+
+    .user-dropdown .dropdown-header {
+        white-space: normal;
+    }
