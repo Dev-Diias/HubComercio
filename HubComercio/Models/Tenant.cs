@@ -22,6 +22,7 @@ namespace HubComercio.Models
         public string? LogoUrl { get; set; } // LogoUrl [cite: 36]
         public string? BannerUrl { get; set; } // BannerUrl [cite: 36]
         public string? CorPrincipal { get; set; } // CorPrincipal (Hexadecimal) [cite: 36]
+        public string? WhatsApp { get; set; }
 
         // Relacionamentos: Essencial para o isolamento de dados SaaS 
         public virtual ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();

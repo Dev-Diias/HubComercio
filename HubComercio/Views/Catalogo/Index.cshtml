@@ -1,5 +1,4 @@
 ﻿@model HubComercio.Models.ViewModels.CatalogoViewModel
-@using System.Globalization
 @{
     Layout = null;
 }
@@ -14,65 +13,86 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 
     <style>
-        body {
-            background-color: #0f1120;
-            color: white;
-        }
+            body {
+                background-color: #eaf6e5;
+                color: #1b1b1b;
+            }
 
-        .topo-catalogo {
-            background-color: @(string.IsNullOrWhiteSpace(Model.CorPrincipal) ? "#36248f" : Model.CorPrincipal);
-            padding: 20px 0;
-        }
+            .topo-catalogo {
+                background-color: @(string.IsNullOrWhiteSpace(Model.CorPrincipal) ? "#22c55e" : Model.CorPrincipal);
+                padding: 24px 0;
+                border-bottom-left-radius: 25px;
+                border-bottom-right-radius: 25px;
+            }
 
-        .logo-loja {
-            max-height: 90px;
-            max-width: 180px;
-            object-fit: contain;
-            border-radius: 10px;
-            background: white;
-            padding: 6px;
-        }
+            .logo-loja {
+                max-height: 90px;
+                max-width: 180px;
+                object-fit: contain;
+                border-radius: 12px;
+                background: white;
+                padding: 8px;
+            }
 
-        .banner-loja {
-            width: 100%;
-            max-height: 280px;
-            object-fit: cover;
-            border-radius: 12px;
-            margin-bottom: 25px;
-        }
+            .banner-loja {
+                width: 100%;
+                max-height: 260px;
+                object-fit: cover;
+                border-radius: 16px;
+                margin-bottom: 28px;
+            }
 
-        .card {
-            background-color: #1a1d33;
-            color: white;
-            border: none;
-            border-radius: 12px;
-        }
+            .navbar-brand-area {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
 
-        .card-title {
-            color: white;
-        }
+            .nome-loja {
+                margin: 0;
+                font-size: 2rem;
+                font-weight: bold;
+                color: white;
+            }
 
-        .card-text {
-            color: #bfc3d9 !important;
-        }
+            .secao-titulo {
+                font-size: 2rem;
+                font-weight: 700;
+                margin-bottom: 20px;
+            }
 
-        .card-price {
-            color: @(string.IsNullOrWhiteSpace(Model.CorPrincipal) ? "#36248f" : Model.CorPrincipal);
-            font-weight: bold;
-        }
+            .categoria-link {
+                text-decoration: none;
+            }
 
-        .navbar-brand-area {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
+            .categoria-card {
+                border: none;
+                border-radius: 18px;
+                overflow: hidden;
+                background: #fff;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+                transition: transform 0.2s ease, box-shadow 0.2s ease;
+            }
 
-        .nome-loja {
-            margin: 0;
-            font-size: 2rem;
-            font-weight: bold;
-            color: white;
-        }
+                .categoria-card:hover {
+                    transform: translateY(-4px);
+                    box-shadow: 0 8px 22px rgba(0,0,0,0.16);
+                }
+
+            .categoria-img {
+                width: 100%;
+                height: 180px;
+                object-fit: cover;
+            }
+
+            .categoria-nome {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: #1b1b1b;
+                text-align: center;
+                padding: 14px 10px 18px;
+                margin: 0;
+            }
     </style>
 </head>
 <body>
@@ -90,41 +110,36 @@
         </div>
     </div>
 
-    <div class="container">
+    <div class="container pb-4">
 
         @if (!string.IsNullOrEmpty(Model.BannerUrl))
         {
-            <img src="@Model.BannerUrl" alt="Banner da loja" class="banner-loja shadow" />
+            <img src="@Model.BannerUrl" alt="Banner da loja" class="banner-loja shadow-sm" />
         }
 
-        <div class="row row-cols-1 row-cols-md-3 g-4">
-            @foreach (var item in Model.Produtos)
+        <h2 class="secao-titulo">Categorias</h2>
+
+        <div class="row row-cols-2 row-cols-md-3 g-4">
+            @foreach (var categoria in Model.Categorias)
             {
                 <div class="col">
-                    <div class="card h-100 shadow-sm">
-                        <img src="@item.ImagemUrl" class="card-img-top" alt="@item.Nome" style="height: 180px; object-fit: cover;">
+                    <a asp-controller="Catalogo"
+                           asp-action="Categoria"
+                           asp-route-id="@Model.TenantId"
+                           asp-route-categoriaId="@categoria.IdCategoria"
+                           class="categoria-link">
+                        <div class="card categoria-card h-100">
+                            <img src="@categoria.ImagemUrl"
+                                 alt="@categoria.Nome"
+                                 class="categoria-img" />
 
-                        <div class="card-body">
-                            <h5 class="card-title">@item.Nome</h5>
-                            <p class="card-text mb-2">@item.Categoria?.Nome</p>
-
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <span class="card-price h5 mb-0">
-                                    @item.Preco.ToString("C", new CultureInfo("pt-BR"))
-                                </span>
-                                <span class="badge bg-light text-dark">@item.UnidadeMedida</span>
-                            </div>
-
-                            <a href="https://wa.me/5518999999999?text=Olá, vi o seu catálogo e quero: @item.Nome"
-                               target="_blank"
-                               class="btn btn-success w-100 shadow-sm">
-                                Pedir no WhatsApp
-                            </a>
+                            <h5 class="categoria-nome">@categoria.Nome</h5>
                         </div>
-                    </div>
+                    </a>
                 </div>
             }
         </div>
+
     </div>
 
 </body>

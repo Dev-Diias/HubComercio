@@ -7,10 +7,11 @@ namespace HubComercio.Models.ViewModels
     {
         public int TenantId { get; set; }
         public string NomeEstabelecimento { get; set; }
-        public string LogoUrl { get; set; }
-        public string BannerUrl { get; set; }
-        public string CorPrincipal { get; set; }
+        public string? LogoUrl { get; set; }
+        public string? BannerUrl { get; set; }
+        public string? CorPrincipal { get; set; }
 
+        public List<Categoria> Categorias { get; set; } = new();
         public List<Produto> Produtos { get; set; } = new();
     }
 }

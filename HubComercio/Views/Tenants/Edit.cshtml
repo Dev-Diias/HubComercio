@@ -37,10 +37,17 @@
                         <span asp-validation-for="CNPJ" class="text-danger"></span>
                     </div>
 
+                    <div class="mb-3">
+                        <label asp-for="WhatsApp" class="form-label">WhatsApp</label>
+                        <input asp-for="WhatsApp" class="form-control" placeholder="Ex: 5518999999999" />
+                        <span asp-validation-for="WhatsApp" class="text-danger"></span>
+                    </div>
+
                     <div class="form-check mb-3">
                         <input class="form-check-input" asp-for="Ativo" />
                         <label class="form-check-label" asp-for="Ativo">Ativo</label>
                     </div>
+
                 }
 
                 <div class="mb-3">

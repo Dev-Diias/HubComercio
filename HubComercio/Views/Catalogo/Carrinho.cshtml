@@ -1,0 +1,285 @@
+﻿@model List<HubComercio.Models.ViewModels.ItemCarrinhoViewModel>
+@using System.Globalization
+@{
+    Layout = null;
+    var tenantId = ViewBag.TenantId;
+    var totalGeral = Model.Sum(i => i.Total);
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carrinho</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+            body {
+                background-color: #eaf6e5;
+                color: #1b1b1b;
+            }
+
+            .topo {
+                background-color: #22c55e;
+                padding: 20px 0;
+                border-bottom-left-radius: 25px;
+                border-bottom-right-radius: 25px;
+                margin-bottom: 25px;
+            }
+
+            .topo-linha {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .btn-voltar {
+                background: white;
+                border: none;
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                text-decoration: none;
+                color: #1b1b1b;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            }
+
+            .titulo {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: white;
+                margin: 0;
+                flex: 1;
+                text-align: center;
+            }
+
+            .espaco-topo {
+                width: 44px;
+            }
+
+            .item-carrinho {
+                background: white;
+                border-radius: 18px;
+                padding: 14px;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+                margin-bottom: 16px;
+            }
+
+            .item-linha {
+                display: flex;
+                gap: 14px;
+                align-items: center;
+            }
+
+            .item-img {
+                width: 90px;
+                height: 90px;
+                object-fit: cover;
+                border-radius: 14px;
+            }
+
+            .item-info {
+                flex: 1;
+            }
+
+            .item-nome {
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-bottom: 6px;
+            }
+
+            .item-detalhe {
+                margin-bottom: 4px;
+                color: #4b5563;
+            }
+
+            .item-total {
+                font-weight: 700;
+                color: #16a34a;
+                font-size: 1.1rem;
+            }
+
+            .resumo {
+                background: white;
+                border-radius: 18px;
+                padding: 20px;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+                margin-top: 24px;
+            }
+
+            .total-geral {
+                font-size: 1.5rem;
+                font-weight: 700;
+                color: #111827;
+            }
+
+            .btn-finalizar {
+                width: 100%;
+                border: none;
+                border-radius: 14px;
+                padding: 14px;
+                background-color: #22c55e;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 700;
+                margin-top: 18px;
+                text-decoration: none;
+                display: inline-block;
+                text-align: center;
+            }
+
+            .carrinho-vazio {
+                background: white;
+                border-radius: 18px;
+                padding: 30px;
+                text-align: center;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            }
+
+            .item-acoes {
+    margin-top: 10px;
+}
+
+.btn-remover {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    background-color: #ef4444;
+    color: white;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form-quantidade {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+}
+
+.input-quantidade {
+    max-width: 110px;
+    border-radius: 10px;
+}
+
+.btn-atualizar {
+    border: none;
+    border-radius: 10px;
+    padding: 8px 12px;
+    background-color: #2563eb;
+    color: white;
+    font-size: 0.9rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+           
+    </style>
+</head>
+
+<body>
+
+    <div class="topo shadow-sm">
+        <div class="container">
+            <div class="topo-linha">
+                <a asp-controller="Catalogo"
+                       asp-action="Index"
+                       asp-route-id="@tenantId"
+                       class="btn-voltar">
+                    ←
+                </a>
+
+                <h1 class="titulo">Carrinho</h1>
+
+                <div class="espaco-topo"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-4">
+        @if (Model.Any())
+        {
+            @foreach (var item in Model)
+            {
+                <div class="item-carrinho">
+                    <div class="item-linha">
+                        <img src="@item.ImagemUrl" alt="@item.NomeProduto" class="item-img" />
+
+                        <div class="item-info">
+                            <div class="item-nome">@item.NomeProduto</div>
+                            <div class="item-detalhe">
+                                Quantidade: @item.Quantidade.ToString("0.###", new CultureInfo("pt-BR")) @item.UnidadeMedida
+                            </div>
+                            <div class="item-detalhe">
+                                Unitário: @item.PrecoUnitario.ToString("C", new CultureInfo("pt-BR"))
+                            </div>
+                            <div class="item-total">
+                                Total: @item.Total.ToString("C", new CultureInfo("pt-BR"))
+                            </div>
+                            <form asp-controller="Catalogo"
+                                  asp-action="AtualizarQuantidadeCarrinho"
+                                  method="post"
+                                  class="form-quantidade">
+                                <input type="hidden" name="tenantId" value="@tenantId" />
+                                <input type="hidden" name="produtoId" value="@item.ProdutoId" />
+
+                                <input type="number"
+                                       name="quantidade"
+                                       value="@item.Quantidade.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                       class="form-control input-quantidade"
+                                       min="@(item.UnidadeMedida?.ToLower().Contains("kg") == true ? "0.001" : "1")"
+                                       step="@(item.UnidadeMedida?.ToLower().Contains("kg") == true ? "0.001" : "1")" />
+
+                                <button type="submit" class="btn-atualizar">
+                                    Atualizar
+                                </button>
+                            </form>
+                            <div class="item-acoes">
+                                <form asp-controller="Catalogo"
+                                      asp-action="RemoverDoCarrinho"
+                                      method="post">
+                                    <input type="hidden" name="tenantId" value="@tenantId" />
+                                    <input type="hidden" name="produtoId" value="@item.ProdutoId" />
+                                    <button type="submit" class="btn-remover">
+                                        Remover
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <div class="resumo">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span class="fs-5">Total do pedido</span>
+                    <span class="total-geral">
+                        @totalGeral.ToString("C", new CultureInfo("pt-BR"))
+                    </span>
+                </div>
+
+                <a asp-controller="Catalogo"
+                       asp-action="Finalizar"
+                       asp-route-id="@tenantId"
+                       class="btn-finalizar">
+                    Finalizar pedido
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="carrinho-vazio">
+                <h4>Seu carrinho está vazio</h4>
+                <p class="mb-0">Adicione produtos para continuar.</p>
+            </div>
+        }
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,183 @@
+﻿@model List<HubComercio.Models.ViewModels.ItemCarrinhoViewModel>
+@using System.Globalization
+@{
+    Layout = null;
+    var tenantId = ViewBag.TenantId;
+    var nomeLoja = ViewBag.NomeLoja as string ?? "Loja";
+    var totalGeral = Model.Sum(i => i.Total);
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Finalizar Pedido</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+            body {
+                background-color: #eaf6e5;
+                color: #1b1b1b;
+            }
+
+            .topo {
+                background-color: #22c55e;
+                padding: 20px 0;
+                border-bottom-left-radius: 25px;
+                border-bottom-right-radius: 25px;
+                margin-bottom: 25px;
+            }
+
+            .topo-linha {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .btn-voltar {
+                background: white;
+                border: none;
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                text-decoration: none;
+                color: #1b1b1b;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            }
+
+            .titulo {
+                font-size: 1.8rem;
+                font-weight: 700;
+                color: white;
+                margin: 0;
+                flex: 1;
+                text-align: center;
+            }
+
+            .espaco-topo {
+                width: 44px;
+            }
+
+            .card-box {
+                background: white;
+                border-radius: 18px;
+                padding: 20px;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+                margin-bottom: 20px;
+            }
+
+            .item-resumo {
+                padding: 10px 0;
+                border-bottom: 1px solid #e5e7eb;
+            }
+
+                .item-resumo:last-child {
+                    border-bottom: none;
+                }
+
+            .item-nome {
+                font-weight: 700;
+            }
+
+            .item-info {
+                color: #4b5563;
+                font-size: 0.95rem;
+            }
+
+            .total-geral {
+                font-size: 1.4rem;
+                font-weight: 700;
+                color: #111827;
+            }
+
+            .btn-enviar {
+                width: 100%;
+                border: none;
+                border-radius: 14px;
+                padding: 14px;
+                background-color: #22c55e;
+                color: white;
+                font-size: 1.1rem;
+                font-weight: 700;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="topo shadow-sm">
+        <div class="container">
+            <div class="topo-linha">
+                <a asp-controller="Catalogo"
+                       asp-action="Carrinho"
+                       asp-route-id="@tenantId"
+                       class="btn-voltar">
+                    ←
+                </a>
+
+                <h1 class="titulo">Finalizar Pedido</h1>
+
+                <div class="espaco-topo"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-4">
+        <div class="card-box">
+            <h4 class="mb-3">Resumo do pedido</h4>
+
+            @foreach (var item in Model)
+            {
+                <div class="item-resumo">
+                    <div class="item-nome">@item.NomeProduto</div>
+                    <div class="item-info">
+                        @item.Quantidade @item.UnidadeMedida x @item.PrecoUnitario.ToString("C", new CultureInfo("pt-BR"))
+                    </div>
+                    <div class="item-info">
+                        Total: @item.Total.ToString("C", new CultureInfo("pt-BR"))
+                    </div>
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="fs-5">Total geral</span>
+                <span class="total-geral">@totalGeral.ToString("C", new CultureInfo("pt-BR"))</span>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <h4 class="mb-3">Entrega e pagamento</h4>
+
+            <form asp-controller="Catalogo" asp-action="EnviarPedidoWhatsApp" method="post">
+                <input type="hidden" name="tenantId" value="@tenantId" />
+
+                <div class="mb-3">
+                    <label class="form-label">Endereço de entrega</label>
+                    <textarea name="endereco" class="form-control" rows="4" required
+                              placeholder="Rua, número, bairro, complemento..."></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Forma de pagamento</label>
+                    <select name="formaPagamento" class="form-select" required>
+                        <option value="">Selecione</option>
+                        <option value="PIX">PIX</option>
+                        <option value="Cartão">Cartão</option>
+                        <option value="Dinheiro">Dinheiro</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-enviar">
+                    Enviar pedido no WhatsApp
+                </button>
+            </form>
+        </div>
+    </div>
+
+</body>
+</html>

@@ -141,6 +141,7 @@ namespace HubComercio.Controllers
             }
 
             tenantBanco.CorPrincipal = tenant.CorPrincipal;
+            tenantBanco.WhatsApp = tenant.WhatsApp;
 
             if (logo != null && logo.Length > 0)
             {

@@ -34,6 +34,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(optio
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession();
 
 var app = builder.Build();
 
@@ -51,6 +53,7 @@ app.UseHttpsRedirection();
 
 // ✅ IMPORTANTÍSSIMO: serve arquivos em wwwroot (inclui /imagens/* do upload)
 app.UseStaticFiles();
+app.UseSession();
 
 app.UseRouting();
 app.UseAuthentication();

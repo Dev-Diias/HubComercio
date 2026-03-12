@@ -1,0 +1,382 @@
+﻿@model HubComercio.Models.ViewModels.CatalogoViewModel
+@using System.Globalization
+@{
+    Layout = null;
+    var corPrincipal = string.IsNullOrWhiteSpace(Model.CorPrincipal) ? "#22c55e" : Model.CorPrincipal;
+    var nomeCategoria = ViewBag.NomeCategoria as string ?? "Produtos";
+    var quantidadeItensCarrinho = ViewBag.QuantidadeItensCarrinho ?? 0;
+}
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@nomeCategoria - @Model.NomeEstabelecimento</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+
+    <style>
+            body {
+                background-color: #eaf6e5;
+                color: #1b1b1b;
+            }
+
+            .topo-catalogo {
+                background-color: @corPrincipal;
+                padding: 20px 0;
+                border-bottom-left-radius: 25px;
+                border-bottom-right-radius: 25px;
+                margin-bottom: 25px;
+            }
+
+            .topo-linha {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .btn-voltar {
+                background: white;
+                border: none;
+                border-radius: 50%;
+                width: 44px;
+                height: 44px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 22px;
+                text-decoration: none;
+                color: #1b1b1b;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+            }
+
+            .titulo-categoria {
+                font-size: 2rem;
+                font-weight: 700;
+                margin: 0;
+                text-align: center;
+                flex: 1;
+            }
+
+            .espaco-topo {
+                width: 44px;
+            }
+
+            .produto-card {
+                background: white;
+                border: none;
+                border-radius: 18px;
+                overflow: hidden;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.10);
+                height: 100%;
+            }
+
+            .produto-img {
+                width: 100%;
+                height: 180px;
+                object-fit: cover;
+            }
+
+            .produto-body {
+                padding: 14px;
+            }
+
+            .produto-nome {
+                font-size: 1rem;
+                font-weight: 700;
+                margin-bottom: 8px;
+                color: #1b1b1b;
+            }
+
+            .produto-info {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 12px;
+                font-size: 0.95rem;
+            }
+
+            .produto-preco {
+                font-weight: 700;
+                color: @corPrincipal;
+                font-size: 1.1rem;
+            }
+
+            .produto-unidade {
+                background: #f3f4f6;
+                padding: 4px 10px;
+                border-radius: 999px;
+                font-size: 0.85rem;
+            }
+
+            .btn-adicionar {
+                width: 100%;
+                border: none;
+                border-radius: 12px;
+                padding: 10px 14px;
+                color: white;
+                background-color: @corPrincipal;
+                font-weight: 600;
+            }
+
+            .sem-produtos {
+                background: white;
+                border-radius: 18px;
+                padding: 30px;
+                text-align: center;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            }
+           
+
+            .carrinho-wrapper {
+                position: fixed;
+                right: 20px;
+                bottom: 20px;
+                z-index: 1050;
+            }
+
+            .carrinho-flutuante {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                background-color: @corPrincipal;
+                color: white;
+                text-decoration: none;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 28px;
+                box-shadow: 0 8px 20px rgba(0,0,0,0.18);
+                transition: transform 0.2s ease;
+            }
+
+                .carrinho-flutuante:hover {
+                    color: white;
+                    transform: scale(1.05);
+                }
+
+            .carrinho-badge {
+                position: absolute;
+                top: -6px;
+                right: -6px;
+                min-width: 24px;
+                height: 24px;
+                border-radius: 999px;
+                background: #ef4444;
+                color: white;
+                font-size: 12px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 6px;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+            }
+
+    </style>
+</head>
+<body>
+
+    <div class="topo-catalogo shadow-sm">
+        <div class="container">
+            <div class="topo-linha">
+                <a asp-controller="Catalogo"
+                       asp-action="Index"
+                       asp-route-id="@Model.TenantId"
+                       class="btn-voltar">
+                    ←
+                </a>
+
+                <h1 class="titulo-categoria">@nomeCategoria</h1>
+
+                <div class="espaco-topo"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-4">
+        @if (Model.Produtos != null && Model.Produtos.Any())
+        {
+            <div class="row row-cols-2 row-cols-md-3 g-4">
+                @foreach (var item in Model.Produtos)
+                {
+                    <div class="col">
+                        <div class="produto-card">
+                            <img src="@item.ImagemUrl" alt="@item.Nome" class="produto-img" />
+
+                            <div class="produto-body">
+                                <div class="produto-nome">@item.Nome</div>
+
+                                <div class="produto-info">
+                                    <span class="produto-preco">
+                                        @item.Preco.ToString("C", new CultureInfo("pt-BR"))
+                                    </span>
+                                    <span class="produto-unidade">@item.UnidadeMedida</span>
+                                </div>
+
+                                <button type="button"
+                                        class="btn-adicionar"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalQuantidade"
+                                        data-produto-id="@item.IdProduto"
+                                        data-produto-nome="@item.Nome"
+                                        data-produto-preco="@item.Preco.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                        data-produto-unidade="@item.UnidadeMedida">
+                                    Adicionar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="sem-produtos">
+                <h4>Nenhum produto encontrado</h4>
+                <p class="mb-0">Essa categoria ainda não possui produtos cadastrados.</p>
+            </div>
+        }
+    </div>
+    <div class="modal fade" id="modalQuantidade" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 rounded-4 shadow">
+                <div class="modal-header">
+                    <h5 class="modal-title">Adicionar produto</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form>
+                        <input type="hidden" id="modalProdutoId" />
+                        <input type="hidden" id="modalTenantId" value="@Model.TenantId" />
+
+                        <div class="mb-3">
+                            <label class="form-label">Produto</label>
+                            <input type="text" id="modalProdutoNome" class="form-control" readonly />
+                        </div>
+
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Preço</label>
+                                <input type="text" id="modalProdutoPreco" class="form-control" readonly />
+                            </div>
+
+                            <div class="col-6 mb-3">
+                                <label class="form-label">Unidade</label>
+                                <input type="text" id="modalProdutoUnidade" class="form-control" readonly />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modalQuantidadeInput" class="form-label" id="labelQuantidade">Quantidade</label>
+                            <input type="number"
+                                   id="modalQuantidadeInput"
+                                   class="form-control"
+                                   min="0.001"
+                                   step="0.001"
+                                   value="1" />
+                        </div>
+
+                        <button type="button" class="btn btn-success w-100" id="btnConfirmarQuantidade">
+                            Confirmar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+            const modalQuantidade = document.getElementById('modalQuantidade');
+
+            modalQuantidade.addEventListener('show.bs.modal', function (event) {
+                const button = event.relatedTarget;
+
+                const produtoId = button.getAttribute('data-produto-id');
+                const produtoNome = button.getAttribute('data-produto-nome');
+                const produtoPreco = button.getAttribute('data-produto-preco');
+                const produtoUnidade = button.getAttribute('data-produto-unidade');
+
+                const precoNumero = parseFloat(produtoPreco);
+
+                document.getElementById('modalProdutoId').value = produtoId;
+                document.getElementById('modalProdutoNome').value = produtoNome;
+                document.getElementById('modalProdutoPreco').value = precoNumero.toLocaleString('pt-BR', {
+                    style: 'currency',
+                    currency: 'BRL'
+                });
+                document.getElementById('modalProdutoUnidade').value = produtoUnidade;
+
+                const inputQuantidade = document.getElementById('modalQuantidadeInput');
+                const labelQuantidade = document.getElementById('labelQuantidade');
+
+                if (produtoUnidade && produtoUnidade.toLowerCase().includes('kg')) {
+                    inputQuantidade.min = "0.001";
+                    inputQuantidade.step = "0.001";
+                    inputQuantidade.value = "0.500";
+                    labelQuantidade.textContent = "Quantidade em kg";
+                } else {
+                    inputQuantidade.min = "1";
+                    inputQuantidade.step = "1";
+                    inputQuantidade.value = "1";
+                    labelQuantidade.textContent = "Quantidade";
+                }
+            });
+
+                        document.getElementById('btnConfirmarQuantidade').addEventListener('click', async function () {
+                const tenantId = document.getElementById('modalTenantId').value;
+                const produtoId = document.getElementById('modalProdutoId').value;
+                const quantidade = document.getElementById('modalQuantidadeInput').value;
+                const produtoNome = document.getElementById('modalProdutoNome').value;
+
+                if (!quantidade || parseFloat(quantidade) <= 0) {
+                    alert('Informe uma quantidade válida.');
+                    return;
+                }
+
+                const response = await fetch('/Catalogo/AdicionarAoCarrinho', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                   body: new URLSearchParams({
+    tenantId: tenantId,
+    produtoId: produtoId,
+    quantidade: quantidade.replace('.', ',')
+})
+                });
+
+                if (response.ok) {
+                               alert(`${produtoNome} foi adicionado ao carrinho com sucesso!`);
+
+            const modalElement = document.getElementById('modalQuantidade');
+            const modalInstance = bootstrap.Modal.getInstance(modalElement);
+            modalInstance.hide();
+
+            location.reload();
+                } else {
+                    alert('Não foi possível adicionar o produto ao carrinho.');
+                }
+            });
+    </script>
+    <div class="carrinho-wrapper">
+        <a asp-controller="Catalogo"
+               asp-action="Carrinho"
+               asp-route-id="@Model.TenantId"
+               class="carrinho-flutuante"
+               title="Ver carrinho">
+            🛒
+        </a>
+
+        @if ((int)quantidadeItensCarrinho > 0)
+        {
+            <span class="carrinho-badge">@quantidadeItensCarrinho</span>
+        }
+    </div>
+</body>
+</html>
