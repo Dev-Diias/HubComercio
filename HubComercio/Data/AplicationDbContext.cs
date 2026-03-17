@@ -13,6 +13,8 @@ namespace HubComercio.Data
         public DbSet<Usuario> Usuarios { get; set; }
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Produto> Produtos { get; set; }
+        public DbSet<Pedido> Pedidos { get; set; }
+        public DbSet<ItemPedido> ItensPedido { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +32,18 @@ namespace HubComercio.Data
                 .WithMany(t => t.Produtos)
                 .HasForeignKey(p => p.TenantId)
                 .OnDelete(DeleteBehavior.Restrict); // Mudei de Cascade para Restrict
+
+            modelBuilder.Entity<Pedido>()
+    .HasOne(p => p.Tenant)
+    .WithMany()
+    .HasForeignKey(p => p.TenantId)
+    .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<ItemPedido>()
+                .HasOne(i => i.Pedido)
+                .WithMany(p => p.Itens)
+                .HasForeignKey(i => i.PedidoId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

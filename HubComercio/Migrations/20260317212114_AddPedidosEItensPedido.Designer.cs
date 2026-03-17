@@ -4,6 +4,7 @@ using HubComercio.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HubComercio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260317212114_AddPedidosEItensPedido")]
+    partial class AddPedidosEItensPedido
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,9 +110,6 @@ namespace HubComercio.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
-                    b.Property<bool>("PrecisaTroco")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -117,9 +117,6 @@ namespace HubComercio.Migrations
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
-
-                    b.Property<decimal?>("TrocoPara")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("ValorTotal")
                         .HasColumnType("decimal(18,2)");
@@ -197,9 +194,6 @@ namespace HubComercio.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("DataCadastro")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DataResetFinanceiro")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("LogoUrl")

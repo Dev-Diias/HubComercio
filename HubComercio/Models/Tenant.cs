@@ -27,5 +27,6 @@ namespace HubComercio.Models
         // Relacionamentos: Essencial para o isolamento de dados SaaS 
         public virtual ICollection<Categoria> Categorias { get; set; } = new List<Categoria>();
         public virtual ICollection<Produto> Produtos { get; set; } = new List<Produto>();
+        public DateTime? DataResetFinanceiro { get; set; }
     }
 }

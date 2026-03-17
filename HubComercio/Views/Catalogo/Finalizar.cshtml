@@ -163,13 +163,38 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Forma de pagamento</label>
-                    <select name="formaPagamento" class="form-select" required>
+                    <label for="formaPagamento" class="form-label">Forma de pagamento</label>
+                    <select id="formaPagamento" name="formaPagamento" class="form-select" required>
                         <option value="">Selecione</option>
                         <option value="PIX">PIX</option>
                         <option value="Cartão">Cartão</option>
                         <option value="Dinheiro">Dinheiro</option>
                     </select>
+                </div>
+
+                <div id="blocoTroco" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label d-block">Precisa de troco?</label>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="precisaTroco" id="trocoNao" value="false" checked>
+                            <label class="form-check-label" for="trocoNao">Não</label>
+                        </div>
+
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="precisaTroco" id="trocoSim" value="true">
+                            <label class="form-check-label" for="trocoSim">Sim</label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3" id="campoTrocoPara" style="display:none;">
+                        <label for="trocoPara" class="form-label">Troco para quanto?</label>
+                        <input type="text"
+                               id="trocoPara"
+                               name="trocoPara"
+                               class="form-control"
+                               placeholder="Ex: 50,00" />
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-enviar">
@@ -178,6 +203,41 @@
             </form>
         </div>
     </div>
+
+    <script>
+            const formaPagamento = document.getElementById("formaPagamento");
+            const blocoTroco = document.getElementById("blocoTroco");
+            const campoTrocoPara = document.getElementById("campoTrocoPara");
+            const trocoParaInput = document.getElementById("trocoPara");
+            const trocoSim = document.getElementById("trocoSim");
+            const trocoNao = document.getElementById("trocoNao");
+
+            function atualizarExibicaoTroco() {
+                const pagamentoEhDinheiro = formaPagamento.value === "Dinheiro";
+
+                if (pagamentoEhDinheiro) {
+                    blocoTroco.style.display = "block";
+
+                    if (trocoSim.checked) {
+                        campoTrocoPara.style.display = "block";
+                    } else {
+                        campoTrocoPara.style.display = "none";
+                        trocoParaInput.value = "";
+                    }
+                } else {
+                    blocoTroco.style.display = "none";
+                    campoTrocoPara.style.display = "none";
+                    trocoParaInput.value = "";
+                    trocoNao.checked = true;
+                }
+            }
+
+            formaPagamento.addEventListener("change", atualizarExibicaoTroco);
+            trocoSim.addEventListener("change", atualizarExibicaoTroco);
+            trocoNao.addEventListener("change", atualizarExibicaoTroco);
+
+            atualizarExibicaoTroco();
+    </script>
 
 </body>
 </html>

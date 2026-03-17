@@ -1,9 +1,12 @@
-﻿using System.Text.Json;
+﻿using System.Text;
+using System.Text.Json;
+using System.Globalization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HubComercio.Data;
 using HubComercio.Models;
 using HubComercio.Models.ViewModels;
+using HubComercio.Helpers;
 
 namespace HubComercio.Controllers
 { 
@@ -39,6 +42,9 @@ namespace HubComercio.Controllers
                 CorPrincipal = tenant.CorPrincipal,
                 Categorias = categorias
             };
+
+            var carrinho = HttpContext.Session.GetObjectFromJson<List<ItemCarrinhoViewModel>>($"Carrinho_{id}");
+            ViewBag.QuantidadeItensCarrinho = carrinho?.Count ?? 0;
 
             return View(viewModel);
         }
@@ -162,50 +168,117 @@ namespace HubComercio.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> EnviarPedidoWhatsApp(int tenantId, string endereco, string formaPagamento)
+        public async Task<IActionResult> EnviarPedidoWhatsApp(
+     string enderecoEntrega,
+     string formaPagamento,
+     string? precisaTroco,
+     string? trocoPara)
         {
-            var tenant = await _context.Tenants
-                .FirstOrDefaultAsync(t => t.Id == tenantId && t.Ativo);
+            var tenantIdStr = User.FindFirst("TenantId")?.Value;
 
-            if (tenant == null)
-                return NotFound();
+            if (string.IsNullOrEmpty(tenantIdStr))
+                return Unauthorized();
 
-            var chaveCarrinho = $"Carrinho_{tenantId}";
-            var carrinhoJson = HttpContext.Session.GetString(chaveCarrinho);
+            int tenantId = int.Parse(tenantIdStr);
 
-            var carrinho = string.IsNullOrEmpty(carrinhoJson)
-                ? new List<ItemCarrinhoViewModel>()
-                : JsonSerializer.Deserialize<List<ItemCarrinhoViewModel>>(carrinhoJson) ?? new List<ItemCarrinhoViewModel>();
+            string chaveCarrinho = $"Carrinho_{tenantId}";
+            var carrinho = HttpContext.Session.GetObjectFromJson<List<ItemCarrinhoViewModel>>(chaveCarrinho);
 
-            if (!carrinho.Any())
-                return RedirectToAction("Carrinho", new { id = tenantId });
-
-            var total = carrinho.Sum(i => i.Total);
-
-            var mensagem = $"Olá, gostaria de fazer o seguinte pedido:\n\n";
-            mensagem += $"{tenant.NomeEstabelecimento}\n\n";
-
-            foreach (var item in carrinho)
+            if (carrinho == null || !carrinho.Any())
             {
-                mensagem += $"- {item.NomeProduto} - {item.Quantidade} {item.UnidadeMedida} - {item.Total.ToString("C", new System.Globalization.CultureInfo("pt-BR"))}\n";
+                TempData["Erro"] = "Seu carrinho está vazio.";
+                return RedirectToAction("Carrinho", new { id = tenantId });
             }
 
-            mensagem += $"\nTotal: {total.ToString("C", new System.Globalization.CultureInfo("pt-BR"))}\n\n";
-            mensagem += $"Endereço de entrega:\n{endereco}\n\n";
-            mensagem += $"Forma de pagamento:\n{formaPagamento}";
+            // ✅ TOTAL DO PEDIDO (ANTES de usar)
+            decimal totalPedido = carrinho.Sum(i => i.Total);
 
-            var numero = tenant.WhatsApp ?? "";
+            // ✅ TROCO
+            bool clientePrecisaTroco = formaPagamento == "Dinheiro" && precisaTroco == "true";
 
-            numero = new string(numero.Where(char.IsDigit).ToArray());
-
-            if (string.IsNullOrWhiteSpace(numero))
+            if (clientePrecisaTroco && string.IsNullOrWhiteSpace(trocoPara))
             {
-                TempData["Erro"] = "A loja não possui um WhatsApp cadastrado.";
+                TempData["Erro"] = "Informe o valor para troco.";
                 return RedirectToAction("Finalizar", new { id = tenantId });
             }
 
-            var mensagemCodificada = Uri.EscapeDataString(mensagem);
-            var url = $"https://wa.me/{numero}?text={mensagemCodificada}";
+            decimal? valorTroco = null;
+
+            if (clientePrecisaTroco && !string.IsNullOrWhiteSpace(trocoPara))
+            {
+                valorTroco = decimal.Parse(
+                    trocoPara.Replace(".", ","),
+                    new System.Globalization.CultureInfo("pt-BR"));
+            }
+
+            // ✅ CRIA O PEDIDO (UMA VEZ SÓ!)
+            var pedido = new Pedido
+            {
+                TenantId = tenantId,
+                DataPedido = DateTime.Now,
+                EnderecoEntrega = enderecoEntrega,
+                FormaPagamento = formaPagamento,
+                ValorTotal = totalPedido,
+                Status = "Finalizado",
+                PrecisaTroco = clientePrecisaTroco,
+                TrocoPara = valorTroco,
+                Itens = carrinho.Select(item => new ItemPedido
+                {
+                    ProdutoId = item.ProdutoId,
+                    NomeProduto = item.NomeProduto,
+                    Quantidade = item.Quantidade,
+                    PrecoUnitario = item.PrecoUnitario,
+                    UnidadeMedida = item.UnidadeMedida,
+                    TotalItem = item.Total
+                }).ToList()
+            };
+
+            _context.Pedidos.Add(pedido);
+            await _context.SaveChangesAsync();
+
+            var tenant = await _context.Tenants.FindAsync(tenantId);
+
+            if (tenant == null || string.IsNullOrEmpty(tenant.WhatsApp))
+                return NotFound("WhatsApp da loja não encontrado.");
+
+            // ✅ MENSAGEM WHATSAPP
+            var sb = new StringBuilder();
+            var cultura = new CultureInfo("pt-BR");
+
+            sb.AppendLine("*Novo Pedido*");
+            sb.AppendLine();
+
+            foreach (var item in carrinho)
+            {
+                sb.AppendLine($"- {item.NomeProduto} | Qtd: {item.Quantidade.ToString("0.###", cultura)} {item.UnidadeMedida} | Total: {item.Total.ToString("C", cultura)}");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"*Endereço:* {enderecoEntrega}");
+
+            sb.AppendLine($"*Pagamento:* {formaPagamento}");
+
+            if (formaPagamento == "Dinheiro")
+            {
+                if (clientePrecisaTroco)
+                    sb.AppendLine($"*Troco para:* R$ {trocoPara}");
+                else
+                    sb.AppendLine("*Troco:* Não precisa");
+            }
+
+            sb.AppendLine($"*Total do Pedido:* {totalPedido.ToString("C", cultura)}");
+
+            string mensagem = sb.ToString();
+          
+
+            string numero = tenant.WhatsApp
+                .Replace("(", "")
+                .Replace(")", "")
+                .Replace("-", "")
+                .Replace(" ", "");
+
+            string mensagemCodificada = Uri.EscapeDataString(mensagem);
+            string url = $"https://wa.me/{numero}?text={mensagemCodificada}";
 
             HttpContext.Session.Remove(chaveCarrinho);
 

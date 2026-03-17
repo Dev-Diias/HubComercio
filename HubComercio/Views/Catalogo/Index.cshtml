@@ -93,19 +93,77 @@
                 padding: 14px 10px 18px;
                 margin: 0;
             }
+
+            .topo-linha-catalogo {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+            }
+
+            .btn-carrinho-topo {
+                position: relative;
+                width: 44px;
+                height: 44px;
+                background: white;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                text-decoration: none;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+                flex-shrink: 0;
+            }
+
+            .icone-carrinho {
+                font-size: 22px;
+                line-height: 1;
+            }
+
+            .carrinho-badge-topo {
+                position: absolute;
+                top: -4px;
+                right: -4px;
+                min-width: 20px;
+                height: 20px;
+                border-radius: 999px;
+                background: #ef4444;
+                color: white;
+                font-size: 11px;
+                font-weight: 700;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 0 5px;
+            }
     </style>
 </head>
 <body>
 
     <div class="topo-catalogo shadow-sm mb-4">
         <div class="container">
-            <div class="navbar-brand-area">
-                @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                {
-                    <img src="@Model.LogoUrl" alt="Logo da loja" class="logo-loja" />
-                }
+            <div class="topo-linha-catalogo">
+                <div class="navbar-brand-area">
+                    @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                    {
+                        <img src="@Model.LogoUrl" alt="Logo da loja" class="logo-loja" />
+                    }
 
-                <h1 class="nome-loja">@Model.NomeEstabelecimento</h1>
+                    <h1 class="nome-loja">@Model.NomeEstabelecimento</h1>
+                </div>
+
+                <a asp-controller="Catalogo"
+                       asp-action="Carrinho"
+                       asp-route-id="@Model.TenantId"
+                       class="btn-carrinho-topo"
+                       title="Ver carrinho">
+                    <span class="icone-carrinho">🛒</span>
+
+                    @if ((int)(ViewBag.QuantidadeItensCarrinho ?? 0) > 0)
+                    {
+                        <span class="carrinho-badge-topo">@ViewBag.QuantidadeItensCarrinho</span>
+                    }
+                </a>
             </div>
         </div>
     </div>

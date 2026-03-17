@@ -5,6 +5,7 @@
     var corPrincipal = string.IsNullOrWhiteSpace(Model.CorPrincipal) ? "#22c55e" : Model.CorPrincipal;
     var nomeCategoria = ViewBag.NomeCategoria as string ?? "Produtos";
     var quantidadeItensCarrinho = ViewBag.QuantidadeItensCarrinho ?? 0;
+
 }
 
 <!DOCTYPE html>
@@ -129,50 +130,40 @@
                 box-shadow: 0 4px 14px rgba(0,0,0,0.08);
             }
            
-
-            .carrinho-wrapper {
-                position: fixed;
-                right: 20px;
-                bottom: 20px;
-                z-index: 1050;
-            }
-
-            .carrinho-flutuante {
-                width: 64px;
-                height: 64px;
+            .btn-carrinho-topo {
+                position: relative;
+                width: 44px;
+                height: 44px;
+                background: white;
                 border-radius: 50%;
-                background-color: @corPrincipal;
-                color: white;
-                text-decoration: none;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 28px;
-                box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-                transition: transform 0.2s ease;
+                text-decoration: none;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.10);
+                flex-shrink: 0;
             }
 
-                .carrinho-flutuante:hover {
-                    color: white;
-                    transform: scale(1.05);
-                }
+            .icone-carrinho {
+                font-size: 22px;
+                line-height: 1;
+            }
 
-            .carrinho-badge {
+            .carrinho-badge-topo {
                 position: absolute;
-                top: -6px;
-                right: -6px;
-                min-width: 24px;
-                height: 24px;
+                top: -4px;
+                right: -4px;
+                min-width: 20px;
+                height: 20px;
                 border-radius: 999px;
                 background: #ef4444;
                 color: white;
-                font-size: 12px;
+                font-size: 11px;
                 font-weight: 700;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                padding: 0 6px;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+                padding: 0 5px;
             }
 
     </style>
@@ -191,7 +182,18 @@
 
                 <h1 class="titulo-categoria">@nomeCategoria</h1>
 
-                <div class="espaco-topo"></div>
+                <a asp-controller="Catalogo"
+                       asp-action="Carrinho"
+                       asp-route-id="@Model.TenantId"
+                       class="btn-carrinho-topo"
+                       title="Ver carrinho">
+                    <span class="icone-carrinho">🛒</span>
+
+                    @if ((int)quantidadeItensCarrinho > 0)
+                    {
+                        <span class="carrinho-badge-topo">@quantidadeItensCarrinho</span>
+                    }
+                </a>
             </div>
         </div>
     </div>
@@ -364,19 +366,5 @@
                 }
             });
     </script>
-    <div class="carrinho-wrapper">
-        <a asp-controller="Catalogo"
-               asp-action="Carrinho"
-               asp-route-id="@Model.TenantId"
-               class="carrinho-flutuante"
-               title="Ver carrinho">
-            🛒
-        </a>
-
-        @if ((int)quantidadeItensCarrinho > 0)
-        {
-            <span class="carrinho-badge">@quantidadeItensCarrinho</span>
-        }
-    </div>
 </body>
 </html>
