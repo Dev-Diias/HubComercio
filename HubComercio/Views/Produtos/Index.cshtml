@@ -48,9 +48,16 @@
             <td>
                 @Html.DisplayFor(modelItem => item.UnidadeMedida)
             </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Qtde)
-            </td>
+                <td>
+                    @{
+                        var unidade = (item.UnidadeMedida ?? "").Trim().ToLower();
+                        var cultura = new System.Globalization.CultureInfo("pt-BR");
+                        var qtdeFormatada = unidade == "un" || unidade == "unidade"
+                            ? item.Qtde.ToString("0", cultura)
+                            : item.Qtde.ToString("0.000", cultura);
+                    }
+                    @qtdeFormatada
+                </td>
             <td>
                     @if (!string.IsNullOrEmpty(item.ImagemUrl))
                     {

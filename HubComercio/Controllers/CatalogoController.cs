@@ -101,6 +101,13 @@ namespace HubComercio.Controllers
             if (produto == null)
                 return NotFound();
 
+            if (quantidade <= 0)
+                return BadRequest("Quantidade inválida.");
+
+            // produto por unidade não pode ser fracionado
+            if (produto.UnidadeMedida?.ToLower() == "un" && quantidade % 1 != 0)
+                return BadRequest("Produtos por unidade não podem ter quantidade fracionada.");
+
             var chaveCarrinho = $"Carrinho_{tenantId}";
             var carrinhoJson = HttpContext.Session.GetString(chaveCarrinho);
             var carrinho = string.IsNullOrEmpty(carrinhoJson)
@@ -108,6 +115,15 @@ namespace HubComercio.Controllers
                 : JsonSerializer.Deserialize<List<ItemCarrinhoViewModel>>(carrinhoJson) ?? new List<ItemCarrinhoViewModel>();
 
             var itemExistente = carrinho.FirstOrDefault(i => i.ProdutoId == produtoId);
+
+            decimal quantidadeFinal = quantidade;
+
+            if (itemExistente != null)
+                quantidadeFinal += itemExistente.Quantidade;
+
+            // valida estoque disponível
+            if (quantidadeFinal > produto.Qtde)
+                return BadRequest($"Estoque insuficiente. Disponível: {produto.Qtde}");
 
             if (itemExistente != null)
             {
@@ -169,18 +185,12 @@ namespace HubComercio.Controllers
 
         [HttpPost]
         public async Task<IActionResult> EnviarPedidoWhatsApp(
-     string enderecoEntrega,
-     string formaPagamento,
-     string? precisaTroco,
-     string? trocoPara)
+    int tenantId,
+    string enderecoEntrega,
+    string formaPagamento,
+    string? precisaTroco,
+    string? trocoPara)
         {
-            var tenantIdStr = User.FindFirst("TenantId")?.Value;
-
-            if (string.IsNullOrEmpty(tenantIdStr))
-                return Unauthorized();
-
-            int tenantId = int.Parse(tenantIdStr);
-
             string chaveCarrinho = $"Carrinho_{tenantId}";
             var carrinho = HttpContext.Session.GetObjectFromJson<List<ItemCarrinhoViewModel>>(chaveCarrinho);
 
@@ -190,10 +200,8 @@ namespace HubComercio.Controllers
                 return RedirectToAction("Carrinho", new { id = tenantId });
             }
 
-            // ✅ TOTAL DO PEDIDO (ANTES de usar)
             decimal totalPedido = carrinho.Sum(i => i.Total);
 
-            // ✅ TROCO
             bool clientePrecisaTroco = formaPagamento == "Dinheiro" && precisaTroco == "true";
 
             if (clientePrecisaTroco && string.IsNullOrWhiteSpace(trocoPara))
@@ -211,7 +219,34 @@ namespace HubComercio.Controllers
                     new System.Globalization.CultureInfo("pt-BR"));
             }
 
-            // ✅ CRIA O PEDIDO (UMA VEZ SÓ!)
+            // VALIDA ESTOQUE ANTES DE SALVAR O PEDIDO
+            foreach (var item in carrinho)
+            {
+                var produto = await _context.Produtos
+                    .FirstOrDefaultAsync(p => p.IdProduto == item.ProdutoId && p.TenantId == tenantId);
+
+                if (produto == null)
+                {
+                    TempData["Erro"] = $"O produto {item.NomeProduto} não foi encontrado.";
+                    return RedirectToAction("Carrinho", new { id = tenantId });
+                }
+
+                // Se for unidade, não permite quantidade fracionada
+                if ((produto.UnidadeMedida?.ToLower() == "un" || produto.UnidadeMedida?.ToLower() == "unidade")
+                    && item.Quantidade % 1 != 0)
+                {
+                    TempData["Erro"] = $"O produto {produto.Nome} só permite quantidades inteiras.";
+                    return RedirectToAction("Carrinho", new { id = tenantId });
+                }
+
+                if (item.Quantidade > produto.Qtde)
+                {
+                    TempData["Erro"] = $"Estoque insuficiente para o produto {produto.Nome}. Disponível: {produto.Qtde}";
+                    return RedirectToAction("Carrinho", new { id = tenantId });
+                }
+            }
+
+            // CRIA O PEDIDO
             var pedido = new Pedido
             {
                 TenantId = tenantId,
@@ -234,6 +269,19 @@ namespace HubComercio.Controllers
             };
 
             _context.Pedidos.Add(pedido);
+
+            // BAIXA O ESTOQUE
+            foreach (var item in carrinho)
+            {
+                var produto = await _context.Produtos
+                    .FirstOrDefaultAsync(p => p.IdProduto == item.ProdutoId && p.TenantId == tenantId);
+
+                if (produto != null)
+                {
+                    produto.Qtde -= item.Quantidade;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             var tenant = await _context.Tenants.FindAsync(tenantId);
@@ -241,7 +289,6 @@ namespace HubComercio.Controllers
             if (tenant == null || string.IsNullOrEmpty(tenant.WhatsApp))
                 return NotFound("WhatsApp da loja não encontrado.");
 
-            // ✅ MENSAGEM WHATSAPP
             var sb = new StringBuilder();
             var cultura = new CultureInfo("pt-BR");
 
@@ -255,7 +302,6 @@ namespace HubComercio.Controllers
 
             sb.AppendLine();
             sb.AppendLine($"*Endereço:* {enderecoEntrega}");
-
             sb.AppendLine($"*Pagamento:* {formaPagamento}");
 
             if (formaPagamento == "Dinheiro")
@@ -269,7 +315,6 @@ namespace HubComercio.Controllers
             sb.AppendLine($"*Total do Pedido:* {totalPedido.ToString("C", cultura)}");
 
             string mensagem = sb.ToString();
-          
 
             string numero = tenant.WhatsApp
                 .Replace("(", "")
@@ -307,7 +352,7 @@ namespace HubComercio.Controllers
         }
 
         [HttpPost]
-        public IActionResult AtualizarQuantidadeCarrinho(int tenantId, int produtoId, string quantidade)
+        public async Task<IActionResult> AtualizarQuantidadeCarrinho(int tenantId, int produtoId, string quantidade)
         {
             if (string.IsNullOrWhiteSpace(quantidade))
                 return RedirectToAction("Carrinho", new { id = tenantId });
@@ -316,6 +361,24 @@ namespace HubComercio.Controllers
 
             if (!decimal.TryParse(quantidade, out var quantidadeDecimal) || quantidadeDecimal <= 0)
                 return RedirectToAction("Carrinho", new { id = tenantId });
+
+            var produto = await _context.Produtos
+                .FirstOrDefaultAsync(p => p.IdProduto == produtoId && p.TenantId == tenantId);
+
+            if (produto == null)
+                return RedirectToAction("Carrinho", new { id = tenantId });
+
+            if (produto.UnidadeMedida?.ToLower() == "un" && quantidadeDecimal % 1 != 0)
+            {
+                TempData["Erro"] = "Produtos por unidade não podem ter quantidade fracionada.";
+                return RedirectToAction("Carrinho", new { id = tenantId });
+            }
+
+            if (quantidadeDecimal > produto.Qtde)
+            {
+                TempData["Erro"] = $"Estoque insuficiente. Disponível: {produto.Qtde}";
+                return RedirectToAction("Carrinho", new { id = tenantId });
+            }
 
             var chaveCarrinho = $"Carrinho_{tenantId}";
             var carrinhoJson = HttpContext.Session.GetString(chaveCarrinho);

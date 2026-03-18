@@ -1,0 +1,110 @@
+﻿@model List<HubComercio.Models.Produto>
+
+@{
+    ViewData["Title"] = "Estoque";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h3 class="mb-1">Controle de Estoque</h3>
+            <p class="text-muted mb-0">Visualize os produtos cadastrados e a quantidade disponível.</p>
+        </div>
+
+        <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+            Voltar
+        </a>
+    </div>
+
+    <form method="get" asp-controller="Estoque" asp-action="Index" class="mb-3">
+        <div class="row g-2">
+            <div class="col-md-8">
+                <input type="text"
+                       name="busca"
+                       value="@ViewBag.Busca"
+                       class="form-control"
+                       placeholder="Pesquisar produto pelo nome..." />
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Pesquisar</button>
+            </div>
+            <div class="col-md-2">
+                <a asp-controller="Estoque" asp-action="Index" class="btn btn-outline-secondary w-100">Limpar</a>
+            </div>
+        </div>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Imagem</th>
+                                <th>Produto</th>
+                                <th>Unidade</th>
+                                <th>Quantidade</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var produto in Model)
+                            {
+                                <tr>
+                                    <td style="width: 90px;">
+                                        @if (!string.IsNullOrEmpty(produto.ImagemUrl))
+                                        {
+                                            <img src="@produto.ImagemUrl"
+                                                 alt="@produto.Nome"
+                                                 width="60"
+                                                 height="60"
+                                                 style="object-fit: cover; border-radius: 8px;" />
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Sem imagem</span>
+                                        }
+                                    </td>
+
+                                    <td>@produto.Nome</td>
+
+                                    <td>@produto.UnidadeMedida</td>
+
+                                    <td>
+                                        @{
+                                            var unidade = (produto.UnidadeMedida ?? "").Trim().ToLower();
+                                            var cultura = new System.Globalization.CultureInfo("pt-BR");
+                                            var quantidadeFormatada = unidade == "un" || unidade == "unidade"
+                                                ? produto.Qtde.ToString("0", cultura)
+                                                : produto.Qtde.ToString("0.000", cultura);
+                                        }
+
+                                        @if (produto.Qtde <= 0)
+                                        {
+                                            <span class="badge bg-danger">Sem estoque</span>
+                                        }
+                                        else if (produto.Qtde <= 5)
+                                        {
+                                            <span class="badge bg-warning text-dark">@quantidadeFormatada</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success">@quantidadeFormatada</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <p class="text-muted mb-0">Nenhum produto encontrado.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -18,7 +18,8 @@ namespace HubComercio.Models
         [StringLength(2)]
         public string UnidadeMedida { get; set; }
 
-        public int Qtde { get; set; }
+        [Column(TypeName = "decimal(10,3)")]
+        public decimal Qtde { get; set; }
 
         public string? ImagemUrl { get; set; }
 

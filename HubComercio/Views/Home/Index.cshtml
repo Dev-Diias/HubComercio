@@ -15,14 +15,14 @@
                     <p class="card-text text-muted">Crie e organize categorias do catálogo.</p>
 
                     <a class="btn btn-primary"
-                       asp-controller="Categorias"
-                       asp-action="Index">
+                           asp-controller="Categorias"
+                           asp-action="Index">
                         Gerenciar categorias
                     </a>
 
                     <a class="btn btn-outline-secondary ms-2"
-                       asp-controller="Categorias"
-                       asp-action="Create">
+                           asp-controller="Categorias"
+                           asp-action="Create">
                         Nova
                     </a>
                 </div>
@@ -36,14 +36,14 @@
                     <p class="card-text text-muted">Cadastre produtos, preços e imagens.</p>
 
                     <a class="btn btn-primary"
-                       asp-controller="Produtos"
-                       asp-action="Index">
+                           asp-controller="Produtos"
+                           asp-action="Index">
                         Gerenciar produtos
                     </a>
 
                     <a class="btn btn-outline-secondary ms-2"
-                       asp-controller="Produtos"
-                       asp-action="Create">
+                           asp-controller="Produtos"
+                           asp-action="Create">
                         Novo
                     </a>
                 </div>
@@ -64,6 +64,22 @@
                 </div>
             </div>
         </div>
+    </div>
 
+    <div class="row justify-content-center g-3 mt-3">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Estoque</h5>
+                    <p class="card-text text-muted">Visualize os produtos e acompanhe a quantidade disponível.</p>
+
+                    <a class="btn btn-primary"
+                           asp-controller="Estoque"
+                           asp-action="Index">
+                        Abrir estoque
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
