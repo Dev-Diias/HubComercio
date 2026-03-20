@@ -25,12 +25,17 @@ namespace HubComercio.Models
         [StringLength(255)]
         public string? EnderecoEntrega { get; set; }
 
-        [StringLength(30)]
-        public string Status { get; set; } = "Finalizado";
+        [Required]
+        [StringLength(20)]
+        public string TelefoneCliente { get; set; } = string.Empty;
+
+        [Required]
+        public StatusPedido Status { get; set; } = StatusPedido.Pendente;
 
         public Tenant? Tenant { get; set; }
 
         public List<ItemPedido> Itens { get; set; } = new();
+
         public bool PrecisaTroco { get; set; }
 
         [Column(TypeName = "decimal(18,2)")]

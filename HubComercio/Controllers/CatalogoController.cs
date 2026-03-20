@@ -185,11 +185,12 @@ namespace HubComercio.Controllers
 
         [HttpPost]
         public async Task<IActionResult> EnviarPedidoWhatsApp(
-    int tenantId,
-    string enderecoEntrega,
-    string formaPagamento,
-    string? precisaTroco,
-    string? trocoPara)
+     int tenantId,
+     string enderecoEntrega,
+     string formaPagamento,
+     string telefoneCliente,
+     string? precisaTroco,
+     string? trocoPara)
         {
             string chaveCarrinho = $"Carrinho_{tenantId}";
             var carrinho = HttpContext.Session.GetObjectFromJson<List<ItemCarrinhoViewModel>>(chaveCarrinho);
@@ -231,7 +232,6 @@ namespace HubComercio.Controllers
                     return RedirectToAction("Carrinho", new { id = tenantId });
                 }
 
-                // Se for unidade, não permite quantidade fracionada
                 if ((produto.UnidadeMedida?.ToLower() == "un" || produto.UnidadeMedida?.ToLower() == "unidade")
                     && item.Quantidade % 1 != 0)
                 {
@@ -246,15 +246,16 @@ namespace HubComercio.Controllers
                 }
             }
 
-            // CRIA O PEDIDO
+            // CRIA O PEDIDO COMO PENDENTE
             var pedido = new Pedido
             {
                 TenantId = tenantId,
                 DataPedido = DateTime.Now,
                 EnderecoEntrega = enderecoEntrega,
                 FormaPagamento = formaPagamento,
+                TelefoneCliente = telefoneCliente,
                 ValorTotal = totalPedido,
-                Status = "Finalizado",
+                Status = StatusPedido.Pendente,
                 PrecisaTroco = clientePrecisaTroco,
                 TrocoPara = valorTroco,
                 Itens = carrinho.Select(item => new ItemPedido
@@ -270,17 +271,8 @@ namespace HubComercio.Controllers
 
             _context.Pedidos.Add(pedido);
 
-            // BAIXA O ESTOQUE
-            foreach (var item in carrinho)
-            {
-                var produto = await _context.Produtos
-                    .FirstOrDefaultAsync(p => p.IdProduto == item.ProdutoId && p.TenantId == tenantId);
-
-                if (produto != null)
-                {
-                    produto.Qtde -= item.Quantidade;
-                }
-            }
+            // NÃO BAIXA ESTOQUE AQUI
+            // A baixa será feita quando o lojista iniciar a preparação
 
             await _context.SaveChangesAsync();
 

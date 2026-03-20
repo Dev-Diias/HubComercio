@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace HubComercio.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260317230512_AddDataResetFinanceiroNoTenant")]
-    partial class AddDataResetFinanceiroNoTenant
+    [Migration("20260320232350_AdicionarTelefoneClientePedido")]
+    partial class AdicionarTelefoneClientePedido
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,10 +113,13 @@ namespace HubComercio.Migrations
                     b.Property<bool>("PrecisaTroco")
                         .HasColumnType("bit");
 
-                    b.Property<string>("Status")
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TelefoneCliente")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("nvarchar(30)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");
@@ -157,8 +160,8 @@ namespace HubComercio.Migrations
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal(10,2)");
 
-                    b.Property<int>("Qtde")
-                        .HasColumnType("int");
+                    b.Property<decimal>("Qtde")
+                        .HasColumnType("decimal(10,3)");
 
                     b.Property<int>("TenantId")
                         .HasColumnType("int");

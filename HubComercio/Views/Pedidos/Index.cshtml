@@ -1,0 +1,131 @@
+﻿@model IEnumerable<HubComercio.Models.Pedido>
+@using HubComercio.Models
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Pedidos Recebidos";
+    var cultura = new CultureInfo("pt-BR");
+}
+
+<h2 class="mb-4">Pedidos Recebidos</h2>
+
+@if (TempData["Sucesso"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Sucesso"]
+    </div>
+}
+
+@if (TempData["Erro"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Erro"]
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Nenhum pedido encontrado.
+    </div>
+}
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Pedido</th>
+                <th>Data</th>
+                <th>Total</th>
+                <th>Pagamento</th>
+                <th>Entrega</th>
+                <th>Status</th>
+                <th>Itens</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pedido in Model)
+            {
+                <tr>
+                    <td>#@pedido.IdPedido</td>
+                    <td>@pedido.DataPedido.ToString("dd/MM/yyyy HH:mm")</td>
+                    <td>@pedido.ValorTotal.ToString("C", cultura)</td>
+                    <td>@pedido.FormaPagamento</td>
+                    <td>@pedido.EnderecoEntrega</td>
+                    <td>
+                        @switch (pedido.Status)
+                        {
+                            case StatusPedido.Pendente:
+                                <span class="badge bg-warning text-dark">Pendente</span>
+                                break;
+                            case StatusPedido.EmPreparacao:
+                                <span class="badge bg-primary">Em preparação</span>
+                                break;
+                            case StatusPedido.Concluido:
+                                <span class="badge bg-success">Concluído</span>
+                                break;
+                            case StatusPedido.Cancelado:
+                                <span class="badge bg-danger">Cancelado</span>
+                                break;
+                        }
+                    </td>
+                    <td>
+                        <ul class="mb-0 ps-3">
+                            @foreach (var item in pedido.Itens)
+                            {
+                                <li>
+                                    @item.NomeProduto -
+                                    @item.Quantidade.ToString("0.###", cultura) @item.UnidadeMedida -
+                                    @item.TotalItem.ToString("C", cultura)
+                                </li>
+                            }
+                        </ul>
+                    </td>
+                    <td>
+                        @if (pedido.Status == StatusPedido.Pendente)
+                        {
+                            <form asp-action="IniciarPreparacao" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@pedido.IdPedido" />
+                                <button type="submit" class="btn btn-sm btn-primary mb-1">
+                                    Iniciar preparo
+                                </button>
+                            </form>
+
+                            <form asp-action="Cancelar" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@pedido.IdPedido" />
+                                <button type="submit" class="btn btn-sm btn-danger mb-1">
+                                    Cancelar
+                                </button>
+                            </form>
+                        }
+                        else if (pedido.Status == StatusPedido.EmPreparacao)
+                        {
+                            <form asp-action="Concluir" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@pedido.IdPedido" />
+                                <button type="submit" class="btn btn-sm btn-success mb-1">
+                                    Concluir
+                                </button>
+                            </form>
+
+                            <form asp-action="Cancelar" method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="id" value="@pedido.IdPedido" />
+                                <button type="submit" class="btn btn-sm btn-danger mb-1">
+                                    Cancelar
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem ações</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
