@@ -1,4 +1,5 @@
 ﻿using HubComercio.Data;
+using HubComercio.Models;
 using HubComercio.Models.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,8 @@ namespace HubComercio.Controllers
             if (tenant == null)
                 return NotFound();
 
-            var pedidosQuery = _context.Pedidos.Where(p => p.TenantId == tenantId);
+            var pedidosQuery = _context.Pedidos
+                .Where(p => p.TenantId == tenantId && p.Status == StatusPedido.Concluido);
 
             if (tenant.DataResetFinanceiro.HasValue)
             {
@@ -50,7 +52,7 @@ namespace HubComercio.Controllers
             decimal percentualCartao = totalVendas > 0 ? (decimal)totalCartao * 100 / totalVendas : 0;
             decimal percentualDinheiro = totalVendas > 0 ? (decimal)totalDinheiro * 100 / totalVendas : 0;
 
-            var vm = new HubComercio.Models.ViewModels.FinanceiroViewModel
+            var vm = new FinanceiroViewModel
             {
                 TotalVendas = totalVendas,
                 TicketMedio = ticketMedio,

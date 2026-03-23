@@ -16,7 +16,7 @@ namespace HubComercio.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string busca)
         {
             var tenantIdClaim = User.FindFirst("TenantId")?.Value;
 
@@ -25,11 +25,27 @@ namespace HubComercio.Controllers
 
             int tenantId = int.Parse(tenantIdClaim);
 
-            var pedidos = await _context.Pedidos
-                .Where(p => p.TenantId == tenantId)
+            var query = _context.Pedidos
+                .Where(p => p.TenantId == tenantId &&
+                       (p.Status == StatusPedido.Pendente || p.Status == StatusPedido.EmPreparacao))
                 .Include(p => p.Itens)
-               .OrderBy(p => p.Status == StatusPedido.Pendente ? 0 : 1)
-               .ThenByDescending(p => p.DataPedido)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                if (int.TryParse(busca, out int numeroPedido))
+                {
+                    query = query.Where(p => p.IdPedido == numeroPedido);
+                }
+                else
+                {
+                    query = query.Where(p => false);
+                }
+            }
+
+            var pedidos = await query
+                .OrderBy(p => p.Status == StatusPedido.Pendente ? 0 : 1)
+                .ThenByDescending(p => p.DataPedido)
                 .ToListAsync();
 
             return View(pedidos);
@@ -212,6 +228,101 @@ namespace HubComercio.Controllers
             var url = $"https://wa.me/{numero}?text={Uri.EscapeDataString(mensagem)}";
 
             return Redirect(url);
+        }
+
+        public async Task<JsonResult> VerificarNovosPedidos()
+        {
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
+
+            if (string.IsNullOrEmpty(tenantIdClaim))
+                return Json(new { sucesso = false });
+
+            int tenantId = int.Parse(tenantIdClaim);
+
+            var ultimoPedidoId = await _context.Pedidos
+                .Where(p => p.TenantId == tenantId)
+                .OrderByDescending(p => p.IdPedido)
+                .Select(p => p.IdPedido)
+                .FirstOrDefaultAsync();
+
+            return Json(new
+            {
+                sucesso = true,
+                ultimoPedidoId
+            });
+        }
+
+        public async Task<IActionResult> Historico(string busca)
+        {
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
+
+            if (string.IsNullOrEmpty(tenantIdClaim))
+                return Unauthorized();
+
+            int tenantId = int.Parse(tenantIdClaim);
+
+            var query = _context.Pedidos
+                .Where(p => p.TenantId == tenantId &&
+                       (p.Status == StatusPedido.Concluido || p.Status == StatusPedido.Cancelado))
+                .Include(p => p.Itens)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                if (int.TryParse(busca, out int numeroPedido))
+                {
+                    query = query.Where(p => p.IdPedido == numeroPedido);
+                }
+                else
+                {
+                    query = query.Where(p => false);
+                }
+            }
+
+            var pedidos = await query
+                .OrderByDescending(p => p.DataPedido)
+                .ToListAsync();
+
+            return View(pedidos);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LimparHistorico()
+        {
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
+
+            if (string.IsNullOrEmpty(tenantIdClaim))
+                return Unauthorized();
+
+            int tenantId = int.Parse(tenantIdClaim);
+
+            var pedidosHistorico = await _context.Pedidos
+                .Where(p => p.TenantId == tenantId &&
+                       (p.Status == StatusPedido.Concluido || p.Status == StatusPedido.Cancelado))
+                .Include(p => p.Itens)
+                .ToListAsync();
+
+            if (!pedidosHistorico.Any())
+            {
+                TempData["Erro"] = "Não há pedidos no histórico para remover.";
+                return RedirectToAction("Historico");
+            }
+
+            foreach (var pedido in pedidosHistorico)
+            {
+                if (pedido.Itens != null && pedido.Itens.Any())
+                {
+                    _context.ItensPedido.RemoveRange(pedido.Itens);
+                }
+            }
+
+            _context.Pedidos.RemoveRange(pedidosHistorico);
+
+            await _context.SaveChangesAsync();
+
+            TempData["Sucesso"] = "Histórico de pedidos limpo com sucesso.";
+            return RedirectToAction("Historico");
         }
     }
 }

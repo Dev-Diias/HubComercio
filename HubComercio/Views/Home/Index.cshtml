@@ -83,7 +83,22 @@
         </div>
     </div>
     
-    <a asp-controller="Pedidos" asp-action="Index" class="btn btn-dark">
-        Pedidos Recebidos
-    </a>
+    <div class="row justify-content-center g-3 mt-3">
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Pedidos</h5>
+                    <p class="card-text text-muted">
+                        Acompanhe os pedidos recebidos e gerencie o andamento.
+                    </p>
+
+                    <a class="btn btn-primary"
+                           asp-controller="Pedidos"
+                           asp-action="Index">
+                        Ver pedidos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
