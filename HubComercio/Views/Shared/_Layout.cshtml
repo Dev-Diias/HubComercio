@@ -98,6 +98,18 @@
                                         </li>
                                     }
 
+                                    @if (User.IsInRole("Administrador") || User.IsInRole("Admin") || User.IsInRole("adm"))
+                                    {
+                                        <li>
+                                        <a asp-controller="Usuarios"
+                                               asp-action="Index"
+                                               class="d-flex align-items-center text-decoration-none text-light py-2 px-3">
+                                            <span class="me-2">👤</span>
+                                            <span>Usuários</span>
+                                        </a>
+                                        </li>
+                                    }
+
                                     <li>
                                         <a asp-controller="Financeiro" asp-action="Index" class="dropdown-item d-flex align-items-center gap-2">
                                             <i class="bi bi-bar-chart-line"></i>

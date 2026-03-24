@@ -31,13 +31,29 @@ namespace HubComercio.Controllers
 
         // GET: Categorias
         // FILTRADO: Mostra apenas as categorias do mercado logado
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string busca)
         {
-            int tenantId = GetTenantId();
-            var categorias = _context.Categorias
-                .Where(c => c.TenantId == tenantId);
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
 
-            return View(await categorias.ToListAsync());
+            if (string.IsNullOrEmpty(tenantIdClaim))
+                return Unauthorized();
+
+            int tenantId = int.Parse(tenantIdClaim);
+
+            var query = _context.Categorias
+                .Include(c => c.Tenant)
+                .Where(c => c.TenantId == tenantId)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                busca = busca.Trim();
+                query = query.Where(c => c.Nome.StartsWith(busca));
+            }
+
+            var categorias = await query.ToListAsync();
+
+            return View(categorias);
         }
 
         // GET: Categorias/Details/5

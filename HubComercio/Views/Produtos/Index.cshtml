@@ -1,84 +1,109 @@
 ﻿@model IEnumerable<HubComercio.Models.Produto>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Produtos";
 }
 
-<h1>Index</h1>
+<h1 class="mb-4">Produtos</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Preco)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.UnidadeMedida)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Qtde)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImagemUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Categoria)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tenant)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nome)
-            </td>
-            <td>
-                    @item.Preco.ToString("C", new System.Globalization.CultureInfo("pt-BR"))
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UnidadeMedida)
-            </td>
-                <td>
-                    @{
-                        var unidade = (item.UnidadeMedida ?? "").Trim().ToLower();
-                        var cultura = new System.Globalization.CultureInfo("pt-BR");
-                        var qtdeFormatada = unidade == "un" || unidade == "unidade"
-                            ? item.Qtde.ToString("0", cultura)
-                            : item.Qtde.ToString("0.000", cultura);
-                    }
-                    @qtdeFormatada
-                </td>
-            <td>
-                    @if (!string.IsNullOrEmpty(item.ImagemUrl))
-                    {
-                        <img src="@item.ImagemUrl" alt="Imagem" style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
-                    }
-                    else
-                    {
-                        <span class="text-muted">Sem imagem</span>
-                    }
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Categoria.Nome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Tenant.NomeEstabelecimento)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdProduto">Edit</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdProduto">Delete</a>
-            </td>
-        </tr>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2 flex-wrap align-items-center">
+        <input type="text"
+               name="busca"
+               class="form-control"
+               placeholder="Buscar produto pelo nome"
+               value="@Context.Request.Query["busca"]" />
+
+        <select name="categoriaId" class="form-select">
+            <option value="">Todas as categorias</option>
+            @foreach (var categoria in ViewBag.Categorias)
+            {
+                if (ViewBag.CategoriaSelecionada != null && ViewBag.CategoriaSelecionada == categoria.IdCategoria)
+                {
+                    <option value="@categoria.IdCategoria" selected>
+                        @categoria.Nome
+                    </option>
+                }
+                else
+                {
+                    <option value="@categoria.IdCategoria">
+                        @categoria.Nome
+                    </option>
+                }
+            }
+        </select>
+
+        <button type="submit" class="btn btn-primary">
+            Buscar
+        </button>
+
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Limpar
+        </a>
+    </form>
+
+    <a asp-action="Create" class="btn btn-success">
+        Novo Produto
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Nenhum produto encontrado.
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Unidade</th>
+                <th>Quantidade</th>
+                <th>Imagem</th>
+                <th>Categoria</th>
+                <th>Tenant</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nome</td>
+                    <td>@item.Preco.ToString("C", new System.Globalization.CultureInfo("pt-BR"))</td>
+                    <td>@item.UnidadeMedida</td>
+                    <td>
+                        @{
+                            var unidade = (item.UnidadeMedida ?? "").Trim().ToLower();
+                            var cultura = new System.Globalization.CultureInfo("pt-BR");
+                            var qtdeFormatada = unidade == "un" || unidade == "unidade"
+                                ? item.Qtde.ToString("0", cultura)
+                                : item.Qtde.ToString("0.000", cultura);
+                        }
+                        @qtdeFormatada
+                    </td>
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.ImagemUrl))
+                        {
+                            <img src="@item.ImagemUrl" alt="Imagem do produto"
+                                 style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem imagem</span>
+                        }
+                    </td>
+                    <td>@item.Categoria?.Nome</td>
+                    <td>@item.Tenant?.NomeEstabelecimento</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.IdProduto">Editar</a> |
+                        <a asp-action="Delete" asp-route-id="@item.IdProduto">Excluir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

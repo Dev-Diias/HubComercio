@@ -58,20 +58,46 @@ namespace HubComercio.Controllers
         // =========================
         // GET: Produtos
         // =========================
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string busca, int? categoriaId)
         {
-            int tenantId = GetTenantId();
+            var tenantIdClaim = User.FindFirst("TenantId")?.Value;
 
-            var produtos = await _context.Produtos
+            if (string.IsNullOrEmpty(tenantIdClaim))
+                return Unauthorized();
+
+            int tenantId = int.Parse(tenantIdClaim);
+
+            var query = _context.Produtos
                 .Include(p => p.Categoria)
                 .Include(p => p.Tenant)
                 .Where(p => p.TenantId == tenantId)
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(busca))
+            {
+                busca = busca.Trim();
+                query = query.Where(p => p.Nome.Contains(busca));
+            }
+
+            if (categoriaId.HasValue)
+            {
+                query = query.Where(p => p.CategoriaId == categoriaId.Value);
+            }
+
+            var produtos = await query.ToListAsync();
+
+            var categorias = await _context.Categorias
+                .Where(c => c.TenantId == tenantId)
+                .OrderBy(c => c.Nome)
                 .ToListAsync();
+
+            ViewBag.Categorias = categorias;
+            ViewBag.CategoriaSelecionada = categoriaId;
 
             return View(produtos);
         }
 
-        
+
 
         // =========================
         // GET: Produtos/Create

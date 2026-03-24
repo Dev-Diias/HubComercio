@@ -1,52 +1,77 @@
 ﻿@model IEnumerable<HubComercio.Models.Categoria>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Categorias";
 }
 
-<h1>Index</h1>
+<h1 class="mb-4">Categorias</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Nome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ImagemUrl)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Tenant)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Nome)
-            </td>
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <form method="get" class="d-flex gap-2 flex-wrap">
+        <input type="text"
+               name="busca"
+               class="form-control"
+               placeholder="Buscar categoria pelo nome"
+               value="@Context.Request.Query["busca"]" />
 
-                <td>
-                    @if (!string.IsNullOrEmpty(item.ImagemUrl))
-                    {
-                        <img src="@item.ImagemUrl" style="max-height:60px;" />
-                    }
-                </td>
+        <button type="submit" class="btn btn-primary">
+            Buscar
+        </button>
 
-            <td>
-                @Html.DisplayFor(modelItem => item.Tenant.NomeEstabelecimento)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.IdCategoria">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.IdCategoria">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.IdCategoria">Delete</a>
-            </td>
-        </tr>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            Limpar
+        </a>
+    </form>
+
+    <a asp-action="Create" class="btn btn-success">
+        Nova Categoria
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        Nenhuma categoria encontrada.
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Nome</th>
+                <th>Imagem</th>
+                <th>Tenant</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Nome</td>
+
+                    <td>
+                        @if (!string.IsNullOrEmpty(item.ImagemUrl))
+                        {
+                            <img src="@item.ImagemUrl" alt="Imagem da categoria"
+                                 style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
+                        }
+                        else
+                        {
+                            <span class="text-muted">Sem imagem</span>
+                        }
+                    </td>
+
+                    <td>@item.Tenant?.NomeEstabelecimento</td>
+
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.IdCategoria">Editar</a> |
+                        <a asp-action="Details" asp-route-id="@item.IdCategoria">Detalhes</a> |
+                        <a asp-action="Delete" asp-route-id="@item.IdCategoria">Excluir</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

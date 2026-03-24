@@ -240,7 +240,8 @@ namespace HubComercio.Controllers
             int tenantId = int.Parse(tenantIdClaim);
 
             var ultimoPedidoId = await _context.Pedidos
-                .Where(p => p.TenantId == tenantId)
+                .Where(p => p.TenantId == tenantId &&
+                            (p.Status == StatusPedido.Pendente || p.Status == StatusPedido.EmPreparacao))
                 .OrderByDescending(p => p.IdPedido)
                 .Select(p => p.IdPedido)
                 .FirstOrDefaultAsync();

@@ -143,3 +143,37 @@ else
         </tbody>
     </table>
 }
+@section Scripts {
+    <script>
+        let ultimoPedidoAtual = @(Model.Any() ? Model.Max(p => p.IdPedido) : 0);
+
+        setInterval(async function () {
+            try {
+                const response = await fetch('@Url.Action("VerificarNovosPedidos", "Pedidos")', {
+                    method: 'GET',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Erro na requisição:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+
+                if (!data.sucesso) {
+                    console.warn('Não foi possível verificar novos pedidos.');
+                    return;
+                }
+
+                if (data.ultimoPedidoId > ultimoPedidoAtual) {
+                    location.reload();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar novos pedidos:', error);
+            }
+        }, 5000);
+    </script>
+}
