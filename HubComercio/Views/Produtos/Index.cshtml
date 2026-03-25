@@ -64,7 +64,6 @@ else
                 <th>Quantidade</th>
                 <th>Imagem</th>
                 <th>Categoria</th>
-                <th>Tenant</th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -86,9 +85,9 @@ else
                         @qtdeFormatada
                     </td>
                     <td>
-                        @if (!string.IsNullOrEmpty(item.ImagemUrl))
+                        @if (!string.IsNullOrEmpty(item.ImagemUrl)) 
                         {
-                            <img src="@item.ImagemUrl" alt="Imagem do produto"
+                            <img src="@item.ImagemUrl"
                                  style="width:60px;height:60px;object-fit:cover;border-radius:8px;" />
                         }
                         else
@@ -97,7 +96,8 @@ else
                         }
                     </td>
                     <td>@item.Categoria?.Nome</td>
-                    <td>@item.Tenant?.NomeEstabelecimento</td>
+
+                    <!-- ÚLTIMA COLUNA -->
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.IdProduto">Editar</a> |
                         <a asp-action="Delete" asp-route-id="@item.IdProduto">Excluir</a>

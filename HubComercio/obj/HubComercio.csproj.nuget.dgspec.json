@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\gagag\\source\\repos\\HubComercio\\HubComercio\\HubComercio.csproj": {}
+    "C:\\Users\\gagag\\Downloads\\HubComercio\\HubComercio.csproj": {}
   },
   "projects": {
-    "C:\\Users\\gagag\\source\\repos\\HubComercio\\HubComercio\\HubComercio.csproj": {
+    "C:\\Users\\gagag\\Downloads\\HubComercio\\HubComercio.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\gagag\\source\\repos\\HubComercio\\HubComercio\\HubComercio.csproj",
+        "projectUniqueName": "C:\\Users\\gagag\\Downloads\\HubComercio\\HubComercio.csproj",
         "projectName": "HubComercio",
-        "projectPath": "C:\\Users\\gagag\\source\\repos\\HubComercio\\HubComercio\\HubComercio.csproj",
+        "projectPath": "C:\\Users\\gagag\\Downloads\\HubComercio\\HubComercio.csproj",
         "packagesPath": "C:\\Users\\gagag\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\gagag\\source\\repos\\HubComercio\\HubComercio\\obj\\",
+        "outputPath": "C:\\Users\\gagag\\Downloads\\HubComercio\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
-          "D:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
           "C:\\Users\\gagag\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -52,27 +52,21 @@
           "dependencies": {
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
-              "version": "[10.0.3, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.Design": {
               "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
               "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.3, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.SqlServer": {
               "target": "Package",
-              "version": "[10.0.3, )"
+              "version": "[10.0.5, )"
             },
             "Microsoft.EntityFrameworkCore.Tools": {
-              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
-              "suppressParent": "All",
               "target": "Package",
-              "version": "[10.0.3, )"
-            },
-            "Microsoft.VisualStudio.Web.CodeGeneration.Design": {
-              "target": "Package",
-              "version": "[10.0.2, )"
+              "version": "[10.0.5, )"
             }
           },
           "imports": [
