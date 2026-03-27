@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HubComercio")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5d54025dfaa2b1cbf07ab31e19aaaa9dc7fae1b6")]
 [assembly: System.Reflection.AssemblyProductAttribute("HubComercio")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HubComercio")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

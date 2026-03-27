@@ -50,19 +50,7 @@ namespace HubComercio.Controllers
             return View(categorias);
         }
 
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null) return NotFound();
-
-            int tenantId = GetTenantId();
-
-            var categoria = await _context.Categorias
-                .FirstOrDefaultAsync(m => m.IdCategoria == id && m.TenantId == tenantId);
-
-            if (categoria == null) return NotFound();
-
-            return View(categoria);
-        }
+        
 
         public IActionResult Create()
         {

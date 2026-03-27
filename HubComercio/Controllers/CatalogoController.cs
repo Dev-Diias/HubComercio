@@ -33,6 +33,15 @@ namespace HubComercio.Controllers
                 .Where(c => c.TenantId == tenant.Id)
                 .ToListAsync();
 
+            var chaveCarrinho = $"Carrinho{id}";
+            var carrinhoJson = HttpContext.Session.GetString(chaveCarrinho);
+
+            var carrinho = string.IsNullOrEmpty(carrinhoJson)
+                ? new List<ItemCarrinhoViewModel>()
+                : JsonSerializer.Deserialize<List<ItemCarrinhoViewModel>>(carrinhoJson) ?? new List<ItemCarrinhoViewModel>();
+
+            ViewBag.QuantidadeItensCarrinho = carrinho.Count;
+
             var viewModel = new CatalogoViewModel
             {
                 TenantId = tenant.Id,
@@ -42,9 +51,6 @@ namespace HubComercio.Controllers
                 CorPrincipal = tenant.CorPrincipal,
                 Categorias = categorias
             };
-
-            var carrinho = HttpContext.Session.GetObjectFromJson<List<ItemCarrinhoViewModel>>($"Carrinho_{id}");
-            ViewBag.QuantidadeItensCarrinho = carrinho?.Count ?? 0;
 
             return View(viewModel);
         }

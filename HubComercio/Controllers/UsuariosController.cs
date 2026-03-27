@@ -28,27 +28,6 @@ namespace HubComercio.Controllers
             var applicationDbContext = _context.Usuarios.Include(u => u.Tenant);
             return View(await applicationDbContext.ToListAsync());
         }
-
-        // GET: Usuarios/Details/5
-        [Authorize(Roles = "Administrador,Admin")]
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var usuario = await _context.Usuarios
-                .Include(u => u.Tenant)
-                .FirstOrDefaultAsync(m => m.IdUsuario == id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            return View(usuario);
-        }
-
         // GET: Usuarios/Create
         [Authorize(Roles = "Administrador,Admin")]
         public IActionResult Create()
@@ -93,9 +72,6 @@ namespace HubComercio.Controllers
             return View(usuario);
         }
 
-        // POST: Usuarios/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador,Admin")]
@@ -106,48 +82,32 @@ namespace HubComercio.Controllers
                 return NotFound();
             }
 
-            if (ModelState.IsValid)
+            ModelState.Remove("Tenant");
+
+            if (!ModelState.IsValid)
             {
-                try
+                ViewData["TenantId"] = new SelectList(_context.Tenants, "Id", "NomeEstabelecimento", usuario.TenantId);
+                return View(usuario);
+            }
+
+            try
+            {
+                _context.Update(usuario);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!UsuarioExists(usuario.IdUsuario))
                 {
-                    _context.Update(usuario);
-                    await _context.SaveChangesAsync();
+                    return NotFound();
                 }
-                catch (DbUpdateConcurrencyException)
+                else
                 {
-                    if (!UsuarioExists(usuario.IdUsuario))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["TenantId"] = new SelectList(_context.Tenants, "Id", "NomeEstabelecimento", usuario.TenantId);
-            return View(usuario);
-        }
-
-        // GET: Usuarios/Delete/5
-        [Authorize(Roles = "Administrador,Admin")]
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
             }
 
-            var usuario = await _context.Usuarios
-                .Include(u => u.Tenant)
-                .FirstOrDefaultAsync(m => m.IdUsuario == id);
-            if (usuario == null)
-            {
-                return NotFound();
-            }
-
-            return View(usuario);
+            return RedirectToAction(nameof(Index));
         }
 
         // POST: Usuarios/Delete/5
